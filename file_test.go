@@ -16,6 +16,7 @@ func TestFileMgr(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer db.Close()
 
 	fm := db.fm
 	blk := NewBlockId("testfile", 2)

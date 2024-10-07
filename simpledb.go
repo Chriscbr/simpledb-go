@@ -13,3 +13,8 @@ func NewSimpleDB(dirname string, blocksize int) (*SimpleDB, error) {
 	db := &SimpleDB{fm}
 	return db, nil
 }
+
+// Closes the SimpleDB instance
+func (db *SimpleDB) Close() {
+	db.fm.Close()
+}

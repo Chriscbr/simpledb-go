@@ -125,6 +125,16 @@ func NewFileMgr(dbdir string, blocksize int) (*FileMgr, error) {
 	return fm, nil
 }
 
+// Closes all open files
+func (fm *FileMgr) Close() {
+	fm.mu.Lock()
+	defer fm.mu.Unlock()
+
+	for _, f := range fm.openFiles {
+		f.Close()
+	}
+}
+
 // Reads the contents of the specified block into the specified page
 func (fm *FileMgr) Read(blk *BlockId, p *Page) error {
 	fm.mu.Lock()
