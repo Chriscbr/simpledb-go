@@ -22,7 +22,7 @@ func TestFileMgr(t *testing.T) {
 	blk := NewBlockId("testfile", 2)
 	pos1 := 0
 
-	p1 := NewPage(fm.blocksize)
+	p1 := NewPage(fm.BlockSize)
 	p1.SetString(pos1, "abcdefghijklm")
 	size := MaxLength(len("abcdefghijklm"))
 	pos2 := pos1 + size
@@ -32,7 +32,7 @@ func TestFileMgr(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	p2 := NewPage(fm.blocksize)
+	p2 := NewPage(fm.BlockSize)
 	if err := fm.Read(blk, p2); err != nil {
 		log.Fatal(err)
 	}

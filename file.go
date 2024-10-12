@@ -82,8 +82,8 @@ func MaxLength(strlen int) int {
 
 type FileMgr struct {
 	dbdir     string
-	blocksize int
-	isNew     bool
+	BlockSize int
+	IsNew     bool
 	openFiles map[string]*os.File
 	mu        sync.Mutex
 }
@@ -92,14 +92,14 @@ type FileMgr struct {
 func NewFileMgr(dbdir string, blocksize int) (*FileMgr, error) {
 	fm := &FileMgr{
 		dbdir:     dbdir,
-		blocksize: blocksize,
+		BlockSize: blocksize,
 		openFiles: make(map[string]*os.File),
 	}
 
 	// Check if the directory exists
 	info, err := os.Stat(dbdir)
 	if os.IsNotExist(err) {
-		fm.isNew = true
+		fm.IsNew = true
 		if err := os.MkdirAll(dbdir, 0755); err != nil {
 			return nil, fmt.Errorf("cannot create directory %w", err)
 		}
@@ -145,7 +145,7 @@ func (fm *FileMgr) Read(blk *BlockId, p *Page) error {
 		return err
 	}
 
-	offset := int64(blk.blknum) * int64(fm.blocksize)
+	offset := int64(blk.blknum) * int64(fm.BlockSize)
 	if _, err := f.ReadAt(p.buf, offset); err != nil {
 		return fmt.Errorf("cannot read block %s: %w", blk, err)
 	}
@@ -163,7 +163,7 @@ func (fm *FileMgr) Write(blk *BlockId, p *Page) error {
 		return err
 	}
 
-	offset := int64(blk.blknum) * int64(fm.blocksize)
+	offset := int64(blk.blknum) * int64(fm.BlockSize)
 	if _, err := f.WriteAt(p.buf, offset); err != nil {
 		return fmt.Errorf("cannot write block %s: %w", blk, err)
 	}
@@ -186,9 +186,9 @@ func (fm *FileMgr) Append(filename string) (*BlockId, error) {
 		return nil, fmt.Errorf("cannot stat file %s: %w", filename, err)
 	}
 
-	newblknum := int(info.Size() / int64(fm.blocksize))
-	buf := make([]byte, fm.blocksize) // an empty block of data
-	offset := int64(newblknum * fm.blocksize)
+	newblknum := int(info.Size() / int64(fm.BlockSize))
+	buf := make([]byte, fm.BlockSize) // an empty block of data
+	offset := int64(newblknum * fm.BlockSize)
 	if _, err := f.WriteAt(buf, offset); err != nil {
 		return nil, fmt.Errorf("cannot write to file %s: %w", filename, err)
 	}
@@ -211,7 +211,7 @@ func (fm *FileMgr) Length(filename string) (int, error) {
 		return 0, fmt.Errorf("cannot stat file %s: %w", filename, err)
 	}
 
-	return int(info.Size() / int64(fm.blocksize)), nil
+	return int(info.Size() / int64(fm.BlockSize)), nil
 }
 
 func (fm *FileMgr) getFile(filename string) (*os.File, error) {
