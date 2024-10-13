@@ -87,11 +87,17 @@ func (lm *LogMgr) All() iter.Seq2[[]byte, error] {
 		// we couldn't flush, so return a dummy iterator with the error
 		return func(yield func([]byte, error) bool) {
 			yield(nil, err)
-			return
 		}
 	}
 
-	li := NewLogIterator(lm.fm, lm.currentblk)
+	li, err := NewLogIterator(lm.fm, lm.currentblk)
+	if err != nil {
+		// we couldn't flush, so return a dummy iterator with the error
+		return func(yield func([]byte, error) bool) {
+			yield(nil, err)
+		}
+	}
+
 	return func(yield func([]byte, error) bool) {
 		for {
 			if !li.HasNext() {
@@ -140,7 +146,7 @@ type LogIterator struct {
 }
 
 // Creates an iterator for the records in the log file, positioned after the last log record.
-func NewLogIterator(fm *FileMgr, blk *BlockId) *LogIterator {
+func NewLogIterator(fm *FileMgr, blk *BlockId) (*LogIterator, error) {
 	buf := make([]byte, fm.BlockSize)
 	p := NewPageFromBytes(buf)
 	li := &LogIterator{
@@ -150,8 +156,10 @@ func NewLogIterator(fm *FileMgr, blk *BlockId) *LogIterator {
 		currentpos: 0,
 		boundary:   0,
 	}
-	li.moveToBlock(blk)
-	return li
+	if err := li.moveToBlock(blk); err != nil {
+		return nil, err
+	}
+	return li, nil
 }
 
 // Determines if the current log record is the earliest record in the log file.
