@@ -34,11 +34,9 @@ func NewLogMgr(fm *FileMgr, logfile string) (*LogMgr, error) {
 	}
 
 	if logsize == 0 {
-		currentblk, err := lm.appendNewBlock()
-		if err != nil {
+		if err := lm.appendNewBlock(); err != nil {
 			return nil, err
 		}
-		lm.currentblk = currentblk
 	} else {
 		lm.currentblk = NewBlockId(logfile, logsize-1)
 	}
@@ -69,11 +67,9 @@ func (lm *LogMgr) Append(logrec []byte) (int, error) {
 	bytesneeded := int32(4 + recsize)
 	if boundary-bytesneeded < 4 { // the log record doesn't fit,
 		lm.forceFlush() // so move to the next block.
-		currentblk, err := lm.appendNewBlock()
-		if err != nil {
+		if err := lm.appendNewBlock(); err != nil {
 			return 0, err
 		}
-		lm.currentblk = currentblk
 		boundary = lm.logpage.GetInt(0)
 	}
 	recpos := boundary - bytesneeded
@@ -109,19 +105,20 @@ func (lm *LogMgr) All() iter.Seq2[[]byte, error] {
 	}
 }
 
-func (lm *LogMgr) appendNewBlock() (*BlockId, error) {
+func (lm *LogMgr) appendNewBlock() error {
 	blk, err := lm.fm.Append(lm.logfile)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	lm.logpage.SetInt(0, int32(lm.fm.BlockSize)) // TODO: handle int overflow better
 	err = lm.fm.Write(blk, lm.logpage)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return blk, nil
+	lm.currentblk = blk
+	return nil
 }
 
 func (lm *LogMgr) forceFlush() error {
