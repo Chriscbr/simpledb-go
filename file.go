@@ -3,6 +3,7 @@ package simpledb
 import (
 	"encoding/binary"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -24,6 +25,14 @@ func NewBlockId(filename string, blknum int) *BlockId {
 // Returns a string representation of the BlockId.
 func (b *BlockId) String() string {
 	return fmt.Sprintf("[file %s, block %d]", b.Filename, b.Blknum)
+}
+
+// Equals checks if two BlockId instances represent the same block.
+func (b *BlockId) Equal(c *BlockId) bool {
+	if c == nil {
+		return false
+	}
+	return b.Filename == c.Filename && b.Blknum == c.Blknum
 }
 
 // Page represents a fixed-size block of data in memory.
@@ -149,9 +158,13 @@ func (fm *FileMgr) Read(blk *BlockId, p *Page) error {
 	}
 
 	offset := int64(blk.Blknum) * int64(fm.BlockSize)
-	if _, err := f.ReadAt(p.buf, offset); err != nil {
-		return fmt.Errorf("cannot read block %s: %w", blk, err)
+	if _, err = f.ReadAt(p.buf, offset); err != nil {
+		if err != io.EOF {
+			return fmt.Errorf("cannot read block %s: %w", blk, err)
+		}
 	}
+
+	// note: if we read less bytes than the size of the page buffer, it's ok
 
 	return nil
 }

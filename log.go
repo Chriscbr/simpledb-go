@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-// The log manager, which is responsible for writing log records into a file.
+// LogMgr is responsible for writing log records into a file.
 // The tail of the log is kept in a buffer, which is flushed to disk when needed.
 type LogMgr struct {
 	fm           *FileMgr
@@ -46,8 +46,8 @@ func NewLogMgr(fm *FileMgr, logfile string) (*LogMgr, error) {
 	return lm, nil
 }
 
-// Ensures the log record corresponding to the specified LSN has been written to disk.
-// All earlier log records will also be written to disk.
+// Ensures the log record corresponding to the specified LSN (log sequence number)
+// has been written to disk. All earlier log records will also be written to disk.
 func (lm *LogMgr) Flush(lsn int) error {
 	if lsn >= lm.lastSavedLSN {
 		return lm.forceFlush()
@@ -142,7 +142,7 @@ func (lm *LogMgr) forceFlush() error {
 	return nil
 }
 
-// Provides the ability to move through the records of the log file in reverse order.
+// LogIterator lets you move through the records of the log file in reverse order.
 type LogIterator struct {
 	fm         *FileMgr
 	blk        *BlockId
