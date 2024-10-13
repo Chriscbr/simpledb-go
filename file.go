@@ -10,8 +10,8 @@ import (
 )
 
 type BlockId struct {
-	filename string
-	blknum   int
+	Filename string
+	Blknum   int
 }
 
 // Creates a new BlockId with the given filename and block number.
@@ -22,7 +22,7 @@ func NewBlockId(filename string, blknum int) *BlockId {
 
 // Returns a string representation of the BlockId.
 func (b *BlockId) String() string {
-	return fmt.Sprintf("[file %s, block %d]", b.filename, b.blknum)
+	return fmt.Sprintf("[file %s, block %d]", b.Filename, b.Blknum)
 }
 
 type Page struct {
@@ -140,12 +140,12 @@ func (fm *FileMgr) Read(blk *BlockId, p *Page) error {
 	fm.mu.Lock()
 	defer fm.mu.Unlock()
 
-	f, err := fm.getFile(blk.filename)
+	f, err := fm.getFile(blk.Filename)
 	if err != nil {
 		return err
 	}
 
-	offset := int64(blk.blknum) * int64(fm.BlockSize)
+	offset := int64(blk.Blknum) * int64(fm.BlockSize)
 	if _, err := f.ReadAt(p.buf, offset); err != nil {
 		return fmt.Errorf("cannot read block %s: %w", blk, err)
 	}
@@ -158,12 +158,12 @@ func (fm *FileMgr) Write(blk *BlockId, p *Page) error {
 	fm.mu.Lock()
 	defer fm.mu.Unlock()
 
-	f, err := fm.getFile(blk.filename)
+	f, err := fm.getFile(blk.Filename)
 	if err != nil {
 		return err
 	}
 
-	offset := int64(blk.blknum) * int64(fm.BlockSize)
+	offset := int64(blk.Blknum) * int64(fm.BlockSize)
 	if _, err := f.WriteAt(p.buf, offset); err != nil {
 		return fmt.Errorf("cannot write block %s: %w", blk, err)
 	}

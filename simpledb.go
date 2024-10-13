@@ -2,7 +2,10 @@ package simpledb
 
 type SimpleDB struct {
 	fm *FileMgr
+	lm *LogMgr
 }
+
+const LogFile = "simpledb.log"
 
 // Creates a new SimpleDB instance with the given directory name and blocksize.
 func NewSimpleDB(dirname string, blocksize int) (*SimpleDB, error) {
@@ -10,7 +13,13 @@ func NewSimpleDB(dirname string, blocksize int) (*SimpleDB, error) {
 	if err != nil {
 		return nil, err
 	}
-	db := &SimpleDB{fm}
+
+	lm, err := NewLogMgr(fm, LogFile)
+	if err != nil {
+		return nil, err
+	}
+
+	db := &SimpleDB{fm, lm}
 	return db, nil
 }
 

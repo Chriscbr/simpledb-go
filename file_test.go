@@ -1,8 +1,6 @@
 package simpledb
 
 import (
-	"fmt"
-	"log"
 	"os"
 	"testing"
 )
@@ -14,7 +12,7 @@ func TestFileMgr(t *testing.T) {
 
 	db, err := NewSimpleDB("filetest", 400)
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 	defer db.Close()
 
@@ -29,14 +27,14 @@ func TestFileMgr(t *testing.T) {
 	p1.SetInt(pos2, 345)
 
 	if err := fm.Write(blk, p1); err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 
 	p2 := NewPage(fm.BlockSize)
 	if err := fm.Read(blk, p2); err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 
-	fmt.Printf("offset %d contains %d\n", pos2, p2.GetInt(pos2))
-	fmt.Printf("offset %d contains %s\n", pos1, p2.GetString(pos1))
+	t.Logf("offset %d contains %d\n", pos2, p2.GetInt(pos2))
+	t.Logf("offset %d contains %s\n", pos1, p2.GetString(pos1))
 }
