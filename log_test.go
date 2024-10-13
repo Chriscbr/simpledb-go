@@ -12,7 +12,7 @@ func TestLogMgr(t *testing.T) {
 		os.RemoveAll("logtest")
 	})
 
-	db, err := NewSimpleDB("logtest", 400)
+	db, err := NewSimpleDB("logtest", 400, 8)
 	if err != nil {
 		t.Fatal(err)
 	}

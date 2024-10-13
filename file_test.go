@@ -10,7 +10,7 @@ func TestFileMgr(t *testing.T) {
 		os.RemoveAll("filetest")
 	})
 
-	db, err := NewSimpleDB("filetest", 400)
+	db, err := NewSimpleDB("filetest", 400, 8)
 	if err != nil {
 		t.Fatal(err)
 	}

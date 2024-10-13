@@ -2,6 +2,7 @@ package simpledb
 
 import (
 	"iter"
+	"sync"
 )
 
 // The log manager, which is responsible for writing log records into a file.
@@ -13,6 +14,7 @@ type LogMgr struct {
 	currentblk   *BlockId
 	latestLSN    int
 	lastSavedLSN int
+	mu           sync.Mutex
 }
 
 // Creates a new LogMgr instance with the specified file manager and logfile.
@@ -62,6 +64,10 @@ func (lm *LogMgr) Flush(lsn int) error {
 // Storing the records backwards makes it easy to read them
 // in reverse order.
 func (lm *LogMgr) Append(logrec []byte) (int, error) {
+	// Prevent two threads from mutating the same page
+	lm.mu.Lock()
+	defer lm.mu.Unlock()
+
 	boundary := lm.logpage.GetInt(0)
 	recsize := len(logrec)
 	bytesneeded := int32(4 + recsize)
