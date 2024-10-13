@@ -1,9 +1,9 @@
 package simpledb
 
 type SimpleDB struct {
-	fm *FileMgr
-	lm *LogMgr
-	bm *BufferMgr
+	FileMgr   *FileMgr
+	LogMgr    *LogMgr
+	BufferMgr *BufferMgr
 }
 
 const LogFile = "simpledb.log"
@@ -31,5 +31,5 @@ func NewSimpleDB(dirname string, blocksize int, numbufs int) (*SimpleDB, error) 
 
 // Closes the SimpleDB instance
 func (db *SimpleDB) Close() {
-	db.fm.Close()
+	db.FileMgr.Close()
 }

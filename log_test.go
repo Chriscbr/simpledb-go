@@ -18,7 +18,7 @@ func TestLogMgr(t *testing.T) {
 	}
 	defer db.Close()
 
-	lm := db.lm
+	lm := db.LogMgr
 	printLogRecords(t, lm, "The initial empty log file:")
 	t.Log("done")
 	createRecords(t, lm, 1, 35)

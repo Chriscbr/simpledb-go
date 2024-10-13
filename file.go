@@ -9,6 +9,7 @@ import (
 	"sync"
 )
 
+// BlockId identifies a single block within a file.
 type BlockId struct {
 	Filename string
 	Blknum   int
@@ -25,6 +26,7 @@ func (b *BlockId) String() string {
 	return fmt.Sprintf("[file %s, block %d]", b.Filename, b.Blknum)
 }
 
+// Page represents a fixed-size block of data in memory.
 type Page struct {
 	buf []byte
 }
@@ -80,6 +82,7 @@ func MaxLength(strlen int) int {
 	return 4 + strlen
 }
 
+// FileMgr manages raw file access for the database.
 type FileMgr struct {
 	dbdir     string
 	BlockSize int

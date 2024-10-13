@@ -16,7 +16,7 @@ func TestFileMgr(t *testing.T) {
 	}
 	defer db.Close()
 
-	fm := db.fm
+	fm := db.FileMgr
 	blk := NewBlockId("testfile", 2)
 	pos1 := 0
 
