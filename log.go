@@ -80,7 +80,7 @@ func (lm *LogMgr) Append(logrec []byte) (int, error) {
 	return lm.latestLSN, nil
 }
 
-// Returns an iterator that returns the records of the log file in reverse order.
+// Returns the records of the log file in reverse order.
 func (lm *LogMgr) All() iter.Seq2[[]byte, error] {
 	err := lm.forceFlush()
 	if err != nil {
