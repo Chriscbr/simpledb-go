@@ -165,7 +165,11 @@ type Buffer struct {
 	Blk      *BlockId
 	pins     int
 	Txnum    int
-	lsn      int
+	// The most recent LSN (log sequence number) associated with the buffer,
+	// or -1 if the buffer has not been modified.
+	// We don't need to store all LSNs, since flushing the log with a given LSN
+	// will also write any logs up to that LSN to disk.
+	lsn int
 }
 
 // Creates a new Buffer instance.
@@ -183,7 +187,7 @@ func NewBuffer(fm *FileMgr, lm *LogMgr) *Buffer {
 }
 
 // Marks the buffer as modified by the specified transaction and updates the
-// LSN (log sequence number).
+// most recent LSN (log sequence number) associated with the buffer.
 func (b *Buffer) SetModified(txnum int, lsn int) {
 	b.Txnum = txnum
 	if lsn >= 0 {

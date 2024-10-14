@@ -98,7 +98,7 @@ func (lm *LogMgr) All() iter.Seq2[[]byte, error] {
 
 	li, err := NewLogIterator(lm.fm, lm.currentblk)
 	if err != nil {
-		// we couldn't flush, so return a dummy iterator with the error
+		// we couldn't create the iterator, so return a dummy iterator with the error
 		return func(yield func([]byte, error) bool) {
 			yield(nil, err)
 		}

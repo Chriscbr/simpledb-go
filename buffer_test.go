@@ -68,31 +68,23 @@ func TestBufferMgr(t *testing.T) {
 	bm := db.BufferMgr
 
 	bs := make([]*Buffer, 6)
+	pinBlock := func(index int, blockNum int) {
+		b, err := bm.Pin(NewBlockId("testfile", blockNum))
+		if err != nil {
+			t.Fatal(err)
+		}
+		bs[index] = b
+	}
 
-	bs[0], err = bm.Pin(NewBlockId("testfile", 0))
-	if err != nil {
-		t.Fatal(err)
-	}
-	bs[1], err = bm.Pin(NewBlockId("testfile", 1))
-	if err != nil {
-		t.Fatal(err)
-	}
-	bs[2], err = bm.Pin(NewBlockId("testfile", 2))
-	if err != nil {
-		t.Fatal(err)
-	}
+	pinBlock(0, 0)
+	pinBlock(1, 1)
+	pinBlock(2, 2)
 
 	bm.Unpin(bs[1])
 	bs[1] = nil
 
-	bs[3], err = bm.Pin(NewBlockId("testfile", 0)) // block 0 pinned twice
-	if err != nil {
-		t.Fatal(err)
-	}
-	bs[4], err = bm.Pin(NewBlockId("testfile", 1)) // block 1 repinned
-	if err != nil {
-		t.Fatal(err)
-	}
+	pinBlock(3, 0) // block 0 pinned twice
+	pinBlock(4, 1) // block 1 repinned
 
 	t.Logf("Available buffers: %d", bm.Available())
 
@@ -109,10 +101,7 @@ func TestBufferMgr(t *testing.T) {
 	bm.Unpin(bs[2])
 	bs[2] = nil
 
-	bs[5], err = bm.Pin(NewBlockId("testfile", 3)) // now this works
-	if err != nil {
-		t.Fatal(err)
-	}
+	pinBlock(5, 3) // now this works
 
 	t.Log("Final Buffer Allocation:")
 	for i, b := range bs {
