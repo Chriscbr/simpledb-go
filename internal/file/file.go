@@ -1,4 +1,4 @@
-package simpledb
+package file
 
 import (
 	"encoding/binary"

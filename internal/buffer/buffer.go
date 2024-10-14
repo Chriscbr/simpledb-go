@@ -1,8 +1,10 @@
-package simpledb
+package buffer
 
 import (
 	"errors"
 	"fmt"
+	"simpledb/internal/file"
+	"simpledb/internal/log"
 	"sync"
 	"time"
 )
@@ -29,7 +31,7 @@ type BufferMgr struct {
 }
 
 // Creates a new BufferMgr instance with the given number of buffer slots.
-func NewBufferMgr(fm *FileMgr, lm *LogMgr, numbufs int) (*BufferMgr, error) {
+func NewBufferMgr(fm *file.FileMgr, lm *log.LogMgr, numbufs int) (*BufferMgr, error) {
 	bufpool := make([]*Buffer, numbufs)
 	for i := 0; i < numbufs; i++ {
 		bufpool[i] = NewBuffer(fm, lm)
@@ -81,7 +83,7 @@ func (bm *BufferMgr) Unpin(b *Buffer) {
 // Pins a buffer to the specified block, potentially waiting until a buffer
 // becomes available. If no buffer becomes available within a fixed time period,
 // a BufferAbortError error is returned.
-func (bm *BufferMgr) Pin(blk *BlockId) (*Buffer, error) {
+func (bm *BufferMgr) Pin(blk *file.BlockId) (*Buffer, error) {
 	bm.mu.Lock()
 	defer bm.mu.Unlock()
 
@@ -108,7 +110,7 @@ func (bm *BufferMgr) Pin(blk *BlockId) (*Buffer, error) {
 // assigned to that block, then that buffer is used; otherwise, an unpinned
 // buffer from the pool is chosen. Returns nil if there are
 // no available buffers.
-func (bm *BufferMgr) tryToPin(blk *BlockId) (*Buffer, error) {
+func (bm *BufferMgr) tryToPin(blk *file.BlockId) (*Buffer, error) {
 	b := bm.findExistingBuffer(blk)
 	if b == nil {
 		b = bm.chooseUnpinnedBuffer()
@@ -130,7 +132,7 @@ func (bm *BufferMgr) tryToPin(blk *BlockId) (*Buffer, error) {
 	return b, nil
 }
 
-func (bm *BufferMgr) findExistingBuffer(blk *BlockId) *Buffer {
+func (bm *BufferMgr) findExistingBuffer(blk *file.BlockId) *Buffer {
 	for _, b := range bm.bufpool {
 		if b.Blk != nil && b.Blk.Equal(blk) {
 			return b
@@ -159,10 +161,10 @@ func waitingTooLong(start time.Time) bool {
 // has been pinned, whether its contents have been modified, and if so, the id
 // and lsn of the modifying txn.
 type Buffer struct {
-	fm       *FileMgr
-	lm       *LogMgr
-	Contents *Page
-	Blk      *BlockId
+	fm       *file.FileMgr
+	lm       *log.LogMgr
+	Contents *file.Page
+	Blk      *file.BlockId
 	pins     int
 	Txnum    int
 	// The most recent LSN (log sequence number) associated with the buffer,
@@ -173,11 +175,11 @@ type Buffer struct {
 }
 
 // Creates a new Buffer instance.
-func NewBuffer(fm *FileMgr, lm *LogMgr) *Buffer {
+func NewBuffer(fm *file.FileMgr, lm *log.LogMgr) *Buffer {
 	b := &Buffer{
 		fm:       fm,
 		lm:       lm,
-		Contents: NewPage(fm.BlockSize),
+		Contents: file.NewPage(fm.BlockSize),
 		Blk:      nil,
 		pins:     0,
 		Txnum:    -1,
@@ -202,7 +204,7 @@ func (b *Buffer) IsPinned() bool {
 
 // Reads the contents of the specified block into the contents of the buffer.
 // If the buffer was dirty, then its previous contents are first written to disk.
-func (b *Buffer) AssignToBlock(blk *BlockId) error {
+func (b *Buffer) AssignToBlock(blk *file.BlockId) error {
 	if err := b.Flush(); err != nil {
 		return err
 	}

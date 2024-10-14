@@ -1,7 +1,9 @@
-package simpledb
+package buffer
 
 import (
 	"os"
+	"simpledb/internal/file"
+	"simpledb/internal/log"
 	"testing"
 )
 
@@ -10,14 +12,11 @@ func TestBuffer(t *testing.T) {
 		os.RemoveAll("buffertest")
 	})
 
-	db, err := NewSimpleDB("buffertest", 400, 3) // only 3 buffers
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer db.Close()
+	db := createPartialDB(t, "buffertest", 400, 3) // only 3 buffers
+	defer closePartialDB(db)
 
-	bm := db.BufferMgr
-	b1, err := bm.Pin(NewBlockId("testfile", 1))
+	bm := db.bm
+	b1, err := bm.Pin(file.NewBlockId("testfile", 1))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,21 +28,21 @@ func TestBuffer(t *testing.T) {
 	bm.Unpin(b1)
 
 	// One of these pins will flush b1 to disk:
-	b2, err := bm.Pin(NewBlockId("testfile", 2))
+	b2, err := bm.Pin(file.NewBlockId("testfile", 2))
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = bm.Pin(NewBlockId("testfile", 3))
+	_, err = bm.Pin(file.NewBlockId("testfile", 3))
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = bm.Pin(NewBlockId("testfile", 4))
+	_, err = bm.Pin(file.NewBlockId("testfile", 4))
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	bm.Unpin(b2)
-	b2, err = bm.Pin(NewBlockId("testfile", 1))
+	b2, err = bm.Pin(file.NewBlockId("testfile", 1))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,17 +58,13 @@ func TestBufferMgr(t *testing.T) {
 		os.RemoveAll("buffermgrtest")
 	})
 
-	db, err := NewSimpleDB("buffermgrtest", 400, 3) // only 3 buffers
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer db.Close()
+	db := createPartialDB(t, "buffermgrtest", 400, 3) // only 3 buffers
+	defer closePartialDB(db)
 
-	bm := db.BufferMgr
-
+	bm := db.bm
 	bs := make([]*Buffer, 6)
 	pinBlock := func(index int, blockNum int) {
-		b, err := bm.Pin(NewBlockId("testfile", blockNum))
+		b, err := bm.Pin(file.NewBlockId("testfile", blockNum))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -89,7 +84,7 @@ func TestBufferMgr(t *testing.T) {
 	t.Logf("Available buffers: %d", bm.Available())
 
 	t.Log("Attempting to pin block 3...")
-	_, err = bm.Pin(NewBlockId("testfile", 3)) // will not work; no buffers left
+	_, err := bm.Pin(file.NewBlockId("testfile", 3)) // will not work; no buffers left
 	if err == nil {
 		t.Fatal("Expected BufferAbortError, but got nil")
 	}
@@ -116,14 +111,11 @@ func TestBufferFile(t *testing.T) {
 		os.RemoveAll("bufferfiletest")
 	})
 
-	db, err := NewSimpleDB("bufferfiletest", 400, 8)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer db.Close()
+	db := createPartialDB(t, "bufferfiletest", 400, 3)
+	defer closePartialDB(db)
 
-	bm := db.BufferMgr
-	blk := NewBlockId("testfile", 2)
+	bm := db.bm
+	blk := file.NewBlockId("testfile", 2)
 	pos1 := 88
 
 	b1, err := bm.Pin(blk)
@@ -132,7 +124,7 @@ func TestBufferFile(t *testing.T) {
 	}
 	p1 := b1.Contents
 	p1.SetString(pos1, "abcdefghijklm")
-	size := MaxLength(len("abcdefghijklm"))
+	size := file.MaxLength(len("abcdefghijklm"))
 	pos2 := pos1 + size
 	p1.SetInt(pos2, 345)
 	b1.SetModified(1, 0)
@@ -146,4 +138,32 @@ func TestBufferFile(t *testing.T) {
 	t.Logf("offset %v contains %v", pos2, p2.GetInt(pos2))
 	t.Logf("offset %v contains %v", pos1, p2.GetString(pos1))
 	bm.Unpin(b2)
+}
+
+type DB struct {
+	fm *file.FileMgr
+	lm *log.LogMgr
+	bm *BufferMgr
+}
+
+func createPartialDB(t *testing.T, dirname string, blocksize int, numbufs int) *DB {
+	fm, err := file.NewFileMgr(dirname, blocksize)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	lm, err := log.NewLogMgr(fm, log.DefaultLogFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bm, err := NewBufferMgr(fm, lm, numbufs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return &DB{fm, lm, bm}
+}
+
+func closePartialDB(db *DB) {
+	db.fm.Close()
 }

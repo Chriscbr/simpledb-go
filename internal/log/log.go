@@ -1,26 +1,30 @@
-package simpledb
+package log
 
 import (
 	"iter"
 	"sync"
+
+	"simpledb/internal/file"
 )
+
+const DefaultLogFile = "simpledb.log"
 
 // LogMgr is responsible for writing log records into a file.
 // The tail of the log is kept in a buffer, which is flushed to disk when needed.
 type LogMgr struct {
-	fm           *FileMgr
+	fm           *file.FileMgr
 	logfile      string
-	logpage      *Page
-	currentblk   *BlockId
+	logpage      *file.Page
+	currentblk   *file.BlockId
 	latestLSN    int
 	lastSavedLSN int
 	mu           sync.Mutex
 }
 
 // Creates a new LogMgr instance with the specified file manager and logfile.
-func NewLogMgr(fm *FileMgr, logfile string) (*LogMgr, error) {
+func NewLogMgr(fm *file.FileMgr, logfile string) (*LogMgr, error) {
 	buf := make([]byte, fm.BlockSize)
-	logpage := NewPageFromBytes(buf)
+	logpage := file.NewPageFromBytes(buf)
 	logsize, err := fm.Length(logfile)
 	if err != nil {
 		return nil, err
@@ -40,7 +44,7 @@ func NewLogMgr(fm *FileMgr, logfile string) (*LogMgr, error) {
 			return nil, err
 		}
 	} else {
-		lm.currentblk = NewBlockId(logfile, logsize-1)
+		lm.currentblk = file.NewBlockId(logfile, logsize-1)
 	}
 
 	return lm, nil
@@ -144,17 +148,17 @@ func (lm *LogMgr) forceFlush() error {
 
 // LogIterator lets you move through the records of the log file in reverse order.
 type LogIterator struct {
-	fm         *FileMgr
-	blk        *BlockId
-	p          *Page
+	fm         *file.FileMgr
+	blk        *file.BlockId
+	p          *file.Page
 	currentpos int
 	boundary   int
 }
 
 // Creates an iterator for the records in the log file, positioned after the last log record.
-func NewLogIterator(fm *FileMgr, blk *BlockId) (*LogIterator, error) {
+func NewLogIterator(fm *file.FileMgr, blk *file.BlockId) (*LogIterator, error) {
 	buf := make([]byte, fm.BlockSize)
-	p := NewPageFromBytes(buf)
+	p := file.NewPageFromBytes(buf)
 	li := &LogIterator{
 		fm:         fm,
 		blk:        blk,
@@ -178,7 +182,7 @@ func (li *LogIterator) HasNext() bool {
 // and return the log record from there.
 func (li *LogIterator) Next() ([]byte, error) {
 	if li.currentpos == li.fm.BlockSize {
-		li.blk = NewBlockId(li.blk.Filename, li.blk.Blknum-1)
+		li.blk = file.NewBlockId(li.blk.Filename, li.blk.Blknum-1)
 		err := li.moveToBlock(li.blk)
 		if err != nil {
 			return nil, err
@@ -191,7 +195,7 @@ func (li *LogIterator) Next() ([]byte, error) {
 
 // Moves to the specified log block and positions it at the first record
 // in that block (i.e., the most recent one).
-func (li *LogIterator) moveToBlock(blk *BlockId) error {
+func (li *LogIterator) moveToBlock(blk *file.BlockId) error {
 	err := li.fm.Read(blk, li.p)
 	if err != nil {
 		return err

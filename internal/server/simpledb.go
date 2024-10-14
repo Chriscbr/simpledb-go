@@ -1,26 +1,30 @@
-package simpledb
+package server
+
+import (
+	"simpledb/internal/buffer"
+	"simpledb/internal/file"
+	"simpledb/internal/log"
+)
 
 type SimpleDB struct {
-	FileMgr   *FileMgr
-	LogMgr    *LogMgr
-	BufferMgr *BufferMgr
+	FileMgr   *file.FileMgr
+	LogMgr    *log.LogMgr
+	BufferMgr *buffer.BufferMgr
 }
-
-const LogFile = "simpledb.log"
 
 // Creates a new SimpleDB instance with the given directory name and blocksize.
 func NewSimpleDB(dirname string, blocksize int, numbufs int) (*SimpleDB, error) {
-	fm, err := NewFileMgr(dirname, blocksize)
+	fm, err := file.NewFileMgr(dirname, blocksize)
 	if err != nil {
 		return nil, err
 	}
 
-	lm, err := NewLogMgr(fm, LogFile)
+	lm, err := log.NewLogMgr(fm, log.DefaultLogFile)
 	if err != nil {
 		return nil, err
 	}
 
-	bm, err := NewBufferMgr(fm, lm, numbufs)
+	bm, err := buffer.NewBufferMgr(fm, lm, numbufs)
 	if err != nil {
 		return nil, err
 	}

@@ -1,4 +1,4 @@
-package simpledb
+package file
 
 import (
 	"os"
@@ -10,13 +10,12 @@ func TestFileMgr(t *testing.T) {
 		os.RemoveAll("filetest")
 	})
 
-	db, err := NewSimpleDB("filetest", 400, 8)
+	fm, err := NewFileMgr("filetest", 400)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer db.Close()
+	defer fm.Close()
 
-	fm := db.FileMgr
 	blk := NewBlockId("testfile", 2)
 	pos1 := 0
 

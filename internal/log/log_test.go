@@ -1,8 +1,9 @@
-package simpledb
+package log
 
 import (
 	"fmt"
 	"os"
+	"simpledb/internal/file"
 	"strings"
 	"testing"
 )
@@ -12,13 +13,9 @@ func TestLogMgr(t *testing.T) {
 		os.RemoveAll("logtest")
 	})
 
-	db, err := NewSimpleDB("logtest", 400, 8)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer db.Close()
+	lm := createLogMgr(t, "logtest", 400)
+	defer closeLogMgr(lm)
 
-	lm := db.LogMgr
 	printLogRecords(t, lm, "The initial empty log file:")
 	t.Log("done")
 	createRecords(t, lm, 1, 35)
@@ -35,9 +32,9 @@ func printLogRecords(t *testing.T, lm *LogMgr, msg string) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		p := NewPageFromBytes(rec)
+		p := file.NewPageFromBytes(rec)
 		s := p.GetString(0)
-		npos := MaxLength(len(s))
+		npos := file.MaxLength(len(s))
 		val := p.GetInt(npos)
 		sb.WriteString(fmt.Sprintf("[%s, %v]\n", s, val))
 	}
@@ -60,10 +57,27 @@ func createRecords(t *testing.T, lm *LogMgr, start int, end int) {
 
 func createLogRecord(s string, n int32) []byte {
 	spos := 0
-	npos := spos + MaxLength(len(s))
+	npos := spos + file.MaxLength(len(s))
 	buf := make([]byte, 4+npos)
-	p := NewPageFromBytes(buf)
+	p := file.NewPageFromBytes(buf)
 	p.SetString(spos, s)
 	p.SetInt(npos, n)
 	return buf
+}
+
+func createLogMgr(t *testing.T, dirname string, blocksize int) *LogMgr {
+	fm, err := file.NewFileMgr(dirname, blocksize)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	lm, err := NewLogMgr(fm, DefaultLogFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return lm
+}
+
+func closeLogMgr(lm *LogMgr) {
+	lm.fm.Close()
 }
