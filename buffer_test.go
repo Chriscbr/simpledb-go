@@ -110,3 +110,40 @@ func TestBufferMgr(t *testing.T) {
 		}
 	}
 }
+
+func TestBufferFile(t *testing.T) {
+	t.Cleanup(func() {
+		os.RemoveAll("bufferfiletest")
+	})
+
+	db, err := NewSimpleDB("bufferfiletest", 400, 8)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	bm := db.BufferMgr
+	blk := NewBlockId("testfile", 2)
+	pos1 := 88
+
+	b1, err := bm.Pin(blk)
+	if err != nil {
+		t.Fatal(err)
+	}
+	p1 := b1.Contents
+	p1.SetString(pos1, "abcdefghijklm")
+	size := MaxLength(len("abcdefghijklm"))
+	pos2 := pos1 + size
+	p1.SetInt(pos2, 345)
+	b1.SetModified(1, 0)
+	bm.Unpin(b1)
+
+	b2, err := bm.Pin(blk)
+	if err != nil {
+		t.Fatal(err)
+	}
+	p2 := b2.Contents
+	t.Logf("offset %v contains %v", pos2, p2.GetInt(pos2))
+	t.Logf("offset %v contains %v", pos1, p2.GetString(pos1))
+	bm.Unpin(b2)
+}
