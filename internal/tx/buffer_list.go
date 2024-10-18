@@ -9,7 +9,7 @@ import (
 type BufferList struct {
 	buffers map[file.BlockId]*buffer.Buffer
 	// Keep track of how many times each block has been pinned
-	pins []*file.BlockId
+	pins []file.BlockId
 	bm   *buffer.BufferMgr
 }
 
@@ -17,7 +17,7 @@ type BufferList struct {
 func NewBufferList(bm *buffer.BufferMgr) *BufferList {
 	return &BufferList{
 		buffers: make(map[file.BlockId]*buffer.Buffer),
-		pins:    make([]*file.BlockId, 0),
+		pins:    make([]file.BlockId, 0),
 		bm:      bm,
 	}
 }
@@ -36,7 +36,7 @@ func (bl *BufferList) Pin(blk *file.BlockId) error {
 	}
 
 	bl.buffers[*blk] = b
-	bl.pins = append(bl.pins, blk)
+	bl.pins = append(bl.pins, *blk)
 
 	return nil
 }
@@ -57,17 +57,17 @@ func (bl *BufferList) Unpin(blk *file.BlockId) {
 // Unpins any buffers still pinned by this transaction.
 func (bl *BufferList) UnpinAll() {
 	for _, blk := range bl.pins {
-		b := bl.buffers[*blk]
+		b := bl.buffers[blk]
 		bl.bm.Unpin(b)
 	}
 	bl.buffers = make(map[file.BlockId]*buffer.Buffer)
-	bl.pins = make([]*file.BlockId, 0)
+	bl.pins = make([]file.BlockId, 0)
 }
 
 // Removes a block from the pins slice.
 func (bl *BufferList) removePin(blk *file.BlockId) {
 	for i, pin := range bl.pins {
-		if pin == blk {
+		if pin == *blk {
 			bl.pins = append(bl.pins[:i], bl.pins[i+1:]...)
 			return
 		}
@@ -77,7 +77,7 @@ func (bl *BufferList) removePin(blk *file.BlockId) {
 // Checks if a block is in the pins slice.
 func (bl *BufferList) containsPin(blk *file.BlockId) bool {
 	for _, pin := range bl.pins {
-		if pin == blk {
+		if pin == *blk {
 			return true
 		}
 	}
