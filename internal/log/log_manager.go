@@ -21,7 +21,7 @@ type LogMgr struct {
 	mu           sync.Mutex
 }
 
-// Creates a new LogMgr instance with the specified file manager and logfile.
+// NewLogMgr creates a new LogMgr instance with the specified file manager and logfile.
 func NewLogMgr(fm *file.FileMgr, logfile string) (*LogMgr, error) {
 	buf := make([]byte, fm.BlockSize)
 	logpage := file.NewPageFromBytes(buf)
@@ -51,8 +51,9 @@ func NewLogMgr(fm *file.FileMgr, logfile string) (*LogMgr, error) {
 	return lm, nil
 }
 
-// Ensures the log record corresponding to the specified LSN (log sequence number)
-// has been written to disk. All earlier log records will also be written to disk.
+// Flush ensures the log record corresponding to the specified LSN
+// (log sequence number) has been written to disk.
+// All earlier log records will also be written to disk.
 func (lm *LogMgr) Flush(lsn int) error {
 	if lsn >= lm.lastSavedLSN {
 		return lm.forceFlush()
@@ -60,7 +61,7 @@ func (lm *LogMgr) Flush(lsn int) error {
 	return nil
 }
 
-// Appends a log record to the log buffer.
+// Append appends a log record to the log buffer.
 // The record consists of an arbitrary array of bytes.
 // Log records are written right to left in the buffer.
 // The size of the record is written before the bytes.
@@ -91,7 +92,7 @@ func (lm *LogMgr) Append(logrec []byte) (int, error) {
 	return lm.latestLSN, nil
 }
 
-// Returns the records of the log file in reverse order.
+// All returns the records of the log file in reverse order.
 func (lm *LogMgr) All() iter.Seq2[[]byte, error] {
 	err := lm.forceFlush()
 	if err != nil {
@@ -122,6 +123,7 @@ func (lm *LogMgr) All() iter.Seq2[[]byte, error] {
 	}
 }
 
+// appendNewBlock appends a new block to the log file.
 func (lm *LogMgr) appendNewBlock() error {
 	blk, err := lm.fm.Append(lm.logfile)
 	if err != nil {
@@ -138,6 +140,7 @@ func (lm *LogMgr) appendNewBlock() error {
 	return nil
 }
 
+// forceFlush writes the log page to disk and updates the last saved LSN.
 func (lm *LogMgr) forceFlush() error {
 	err := lm.fm.Write(lm.currentblk, lm.logpage)
 	if err != nil {

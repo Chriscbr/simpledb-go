@@ -6,8 +6,8 @@ import (
 	"simpledb/internal/log"
 )
 
-// An individual buffer. It wraps a page and stores information about its
-// status, such as the associated disk block, the number of times the buffer
+// Buffer is an individual buffer. It wraps a page and stores information about
+// its status, such as the associated disk block, the number of times the buffer
 // has been pinned, whether its contents have been modified, and if so, the id
 // and lsn of the modifying txn.
 type Buffer struct {
@@ -24,7 +24,7 @@ type Buffer struct {
 	lsn int
 }
 
-// Creates a new Buffer instance.
+// NewBuffer creates a new Buffer instance.
 func NewBuffer(fm *file.FileMgr, lm *log.LogMgr) *Buffer {
 	return &Buffer{
 		fm:       fm,
@@ -37,8 +37,8 @@ func NewBuffer(fm *file.FileMgr, lm *log.LogMgr) *Buffer {
 	}
 }
 
-// Marks the buffer as modified by the specified transaction and updates the
-// most recent LSN (log sequence number) associated with the buffer.
+// SetModified marks the buffer as modified by the specified transaction and
+// updates the most recent LSN (log sequence number) associated with the buffer.
 func (b *Buffer) SetModified(txnum int, lsn int) {
 	b.Txnum = txnum
 	if lsn >= 0 {
@@ -46,13 +46,14 @@ func (b *Buffer) SetModified(txnum int, lsn int) {
 	}
 }
 
-// Returns true if the buffer is currently pinned
+// IsPinned returns true if the buffer is currently pinned
 func (b *Buffer) IsPinned() bool {
 	return b.pins > 0
 }
 
-// Reads the contents of the specified block into the contents of the buffer.
-// If the buffer was dirty, then its previous contents are first written to disk.
+// AssignToBlock reads the contents of the specified block into the contents of
+// the buffer. If the buffer was dirty, then its previous contents are first
+// written to disk.
 func (b *Buffer) AssignToBlock(blk file.BlockId) error {
 	if err := b.Flush(); err != nil {
 		return err
@@ -65,7 +66,7 @@ func (b *Buffer) AssignToBlock(blk file.BlockId) error {
 	return nil
 }
 
-// Write the buffer to its disk block if it's dirty.
+// Flush writes the buffer to its disk block if it's dirty.
 func (b *Buffer) Flush() error {
 	if b.Txnum >= 0 {
 		if err := b.lm.Flush(b.lsn); err != nil {
@@ -82,12 +83,12 @@ func (b *Buffer) Flush() error {
 	return nil
 }
 
-// Increase the buffer's pin count
+// Pin increases the buffer's pin count
 func (b *Buffer) Pin() {
 	b.pins += 1
 }
 
-// Decrease the buffer's pin count
+// Unpin decreases the buffer's pin count
 func (b *Buffer) Unpin() {
 	b.pins -= 1
 }

@@ -13,7 +13,7 @@ type BufferList struct {
 	bm   *buffer.BufferMgr
 }
 
-// Creates a new BufferList instance
+// NewBufferList creates a new BufferList instance
 func NewBufferList(bm *buffer.BufferMgr) *BufferList {
 	return &BufferList{
 		buffers: make(map[file.BlockId]*buffer.Buffer),
@@ -22,13 +22,13 @@ func NewBufferList(bm *buffer.BufferMgr) *BufferList {
 	}
 }
 
-// Return the buffer pinned to the specified block.
-// The method returns null if the transaction has not pinned the block.
+// GetBuffer returns the buffer pinned to the specified block.
+// The method returns nil if the transaction has not pinned the block.
 func (bl *BufferList) GetBuffer(blk file.BlockId) *buffer.Buffer {
 	return bl.buffers[blk]
 }
 
-// Pin the block and keep track of the buffer internally.
+// Pin pins the specified block and keeps track of the buffer internally.
 func (bl *BufferList) Pin(blk file.BlockId) error {
 	b, err := bl.bm.Pin(blk)
 	if err != nil {
@@ -41,7 +41,7 @@ func (bl *BufferList) Pin(blk file.BlockId) error {
 	return nil
 }
 
-// Unpin the specified block.
+// Unpin unpins the specified block.
 func (bl *BufferList) Unpin(blk file.BlockId) {
 	b, exists := bl.buffers[blk]
 	if !exists {
@@ -54,7 +54,7 @@ func (bl *BufferList) Unpin(blk file.BlockId) {
 	}
 }
 
-// Unpins any buffers still pinned by this transaction.
+// UnpinAll unpins any buffers still pinned by this transaction.
 func (bl *BufferList) UnpinAll() {
 	for _, blk := range bl.pins {
 		b := bl.buffers[blk]
@@ -64,7 +64,7 @@ func (bl *BufferList) UnpinAll() {
 	bl.pins = make([]file.BlockId, 0)
 }
 
-// Removes a block from the pins slice.
+// removePin removes a block from the pins slice.
 func (bl *BufferList) removePin(blk file.BlockId) {
 	for i, pin := range bl.pins {
 		if pin == blk {
@@ -74,7 +74,7 @@ func (bl *BufferList) removePin(blk file.BlockId) {
 	}
 }
 
-// Checks if a block is in the pins slice.
+// containsPin checks if a block is in the pins slice.
 func (bl *BufferList) containsPin(blk file.BlockId) bool {
 	for _, pin := range bl.pins {
 		if pin == blk {

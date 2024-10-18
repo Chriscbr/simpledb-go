@@ -16,7 +16,8 @@ type BufferMgr struct {
 	mu           sync.Mutex
 }
 
-// Creates a new BufferMgr instance with the given number of buffer slots.
+// NewBufferMgr creates a new BufferMgr instance with the given number of
+// buffer slots.
 func NewBufferMgr(fm *file.FileMgr, lm *log.LogMgr, numbufs int) (*BufferMgr, error) {
 	bufpool := make([]*Buffer, numbufs)
 	for i := 0; i < numbufs; i++ {
@@ -29,7 +30,7 @@ func NewBufferMgr(fm *file.FileMgr, lm *log.LogMgr, numbufs int) (*BufferMgr, er
 	return bm, nil
 }
 
-// Returns the number of available (i.e. unpinned) buffers.
+// Available returns the number of available (i.e. unpinned) buffers.
 func (bm *BufferMgr) Available() int {
 	bm.mu.Lock()
 	a := bm.numAvailable
@@ -37,7 +38,7 @@ func (bm *BufferMgr) Available() int {
 	return a
 }
 
-// Flushes the dirty buffers modified by the specified transaction.
+// FlushAll flushes the dirty buffers modified by the specified transaction.
 func (bm *BufferMgr) FlushAll(txnum int) error {
 	bm.mu.Lock()
 	defer bm.mu.Unlock()
@@ -53,8 +54,8 @@ func (bm *BufferMgr) FlushAll(txnum int) error {
 	return errors.Join(errs...)
 }
 
-// Unpins the specified data buffer. If its pin count goes to zero, then notify
-// any waiting threads.
+// Unpin unpins the specified data buffer. If its pin count goes to zero, then
+// notify any waiting threads.
 func (bm *BufferMgr) Unpin(b *Buffer) {
 	bm.mu.Lock()
 	defer bm.mu.Unlock()
@@ -66,7 +67,7 @@ func (bm *BufferMgr) Unpin(b *Buffer) {
 	}
 }
 
-// Pins a buffer to the specified block, potentially waiting until a buffer
+// Pin pins a buffer to the specified block, potentially waiting until a buffer
 // becomes available. If no buffer becomes available within a fixed time period,
 // a BufferAbortError error is returned.
 func (bm *BufferMgr) Pin(blk file.BlockId) (*Buffer, error) {
@@ -92,10 +93,10 @@ func (bm *BufferMgr) Pin(blk file.BlockId) (*Buffer, error) {
 	}
 }
 
-// Tries to pin a buffer to the specified block. If there is already a buffer
-// assigned to that block, then that buffer is used; otherwise, an unpinned
-// buffer from the pool is chosen. Returns nil if there are
-// no available buffers.
+// tryToPin tries to pin a buffer to the specified block. If there is already a
+// buffer assigned to that block, then that buffer is used; otherwise, an
+// unpinned buffer from the pool is chosen. Returns nil if there are no
+// available buffers.
 func (bm *BufferMgr) tryToPin(blk file.BlockId) (*Buffer, error) {
 	b := bm.findExistingBuffer(blk)
 	if b == nil {
@@ -118,6 +119,8 @@ func (bm *BufferMgr) tryToPin(blk file.BlockId) (*Buffer, error) {
 	return b, nil
 }
 
+// findExistingBuffer returns the buffer assigned to the specified block, or nil
+// if no buffer is assigned to that block.
 func (bm *BufferMgr) findExistingBuffer(blk file.BlockId) *Buffer {
 	for _, b := range bm.bufpool {
 		if b.Blk.Equal(blk) {
@@ -127,6 +130,8 @@ func (bm *BufferMgr) findExistingBuffer(blk file.BlockId) *Buffer {
 	return nil
 }
 
+// chooseUnpinnedBuffer returns an unpinned buffer from the buffer pool, or nil
+// if no such buffer exists.
 func (bm *BufferMgr) chooseUnpinnedBuffer() *Buffer {
 	for _, b := range bm.bufpool {
 		if !b.IsPinned() {
@@ -136,8 +141,12 @@ func (bm *BufferMgr) chooseUnpinnedBuffer() *Buffer {
 	return nil
 }
 
+// maxWaitTime is the maximum amount of time to wait for a buffer to become
+// available.
 const maxWaitTime = 10 * time.Second
 
+// waitingTooLong returns true if the specified start time is greater than
+// maxWaitTime.
 func waitingTooLong(start time.Time) bool {
 	return time.Since(start) > maxWaitTime
 }

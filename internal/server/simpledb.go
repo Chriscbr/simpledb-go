@@ -12,7 +12,8 @@ type SimpleDB struct {
 	BufferMgr *buffer.BufferMgr
 }
 
-// Creates a new SimpleDB instance with the given directory name and blocksize.
+// NewSimpleDB creates a new SimpleDB instance with the given directory name and blocksize.
+// The instance should be closed by calling Close() when it's no longer needed.
 func NewSimpleDB(dirname string, blocksize int, numbufs int) (*SimpleDB, error) {
 	fm, err := file.NewFileMgr(dirname, blocksize)
 	if err != nil {
@@ -33,7 +34,7 @@ func NewSimpleDB(dirname string, blocksize int, numbufs int) (*SimpleDB, error) 
 	return db, nil
 }
 
-// Closes the SimpleDB instance
+// Close closes the SimpleDB instance
 func (db *SimpleDB) Close() {
 	db.FileMgr.Close()
 }

@@ -11,14 +11,17 @@ import (
 
 // FileMgr manages raw file access for the database.
 type FileMgr struct {
-	dbdir     string
+	dbdir string
+	// BlockSize is the size of each block in the file in bytes.
+	// In a real database system, this value should be set to the the block
+	// size defined by the operating system.
 	BlockSize int
 	IsNew     bool
 	openFiles map[string]*os.File
 	mu        sync.Mutex
 }
 
-// Creates a new FileMgr with the given directory name and blocksize.
+// NewFileMgr creates a new FileMgr with the given directory name and blocksize.
 func NewFileMgr(dbdir string, blocksize int) (*FileMgr, error) {
 	fm := &FileMgr{
 		dbdir:     dbdir,
@@ -55,7 +58,7 @@ func NewFileMgr(dbdir string, blocksize int) (*FileMgr, error) {
 	return fm, nil
 }
 
-// Closes all open files
+// Close closes all open files
 func (fm *FileMgr) Close() {
 	fm.mu.Lock()
 	defer fm.mu.Unlock()
@@ -65,7 +68,7 @@ func (fm *FileMgr) Close() {
 	}
 }
 
-// Reads the contents of the specified block into the specified page
+// Read reads the contents of the specified block into the specified page
 func (fm *FileMgr) Read(blk BlockId, p *Page) error {
 	fm.mu.Lock()
 	defer fm.mu.Unlock()
@@ -87,7 +90,7 @@ func (fm *FileMgr) Read(blk BlockId, p *Page) error {
 	return nil
 }
 
-// Writes the contents of a page to the specified block
+// Write writes the contents of a page to the specified block
 func (fm *FileMgr) Write(blk BlockId, p *Page) error {
 	fm.mu.Lock()
 	defer fm.mu.Unlock()
@@ -105,7 +108,9 @@ func (fm *FileMgr) Write(blk BlockId, p *Page) error {
 	return nil
 }
 
-// Seeks to the end of the file and writes an empty array of bytes, extending the file
+// Append seeks to the end of the file and writes an empty array of bytes,
+// extending the file. It returns the block id of the newly created block
+// within the file.
 func (fm *FileMgr) Append(filename string) (BlockId, error) {
 	fm.mu.Lock()
 	defer fm.mu.Unlock()
@@ -130,7 +135,7 @@ func (fm *FileMgr) Append(filename string) (BlockId, error) {
 	return NewBlockId(filename, newblknum), nil
 }
 
-// Returns the number of blocks in the specified file
+// Length returns the number of blocks in the specified file
 func (fm *FileMgr) Length(filename string) (int, error) {
 	fm.mu.Lock()
 	defer fm.mu.Unlock()
@@ -148,6 +153,8 @@ func (fm *FileMgr) Length(filename string) (int, error) {
 	return int(info.Size() / int64(fm.BlockSize)), nil
 }
 
+// getFile gets a file from the list of open files or creates a new one if it
+// doesn't exist.
 func (fm *FileMgr) getFile(filename string) (*os.File, error) {
 	if f, ok := fm.openFiles[filename]; ok {
 		return f, nil

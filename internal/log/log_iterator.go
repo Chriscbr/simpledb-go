@@ -11,7 +11,8 @@ type LogIterator struct {
 	boundary   int
 }
 
-// Creates an iterator for the records in the log file, positioned after the last log record.
+// NewLogIterator creates an iterator for the records in the log file,
+// positioned after the last log record.
 func NewLogIterator(fm *file.FileMgr, blk file.BlockId) (*LogIterator, error) {
 	buf := make([]byte, fm.BlockSize)
 	p := file.NewPageFromBytes(buf)
@@ -28,12 +29,13 @@ func NewLogIterator(fm *file.FileMgr, blk file.BlockId) (*LogIterator, error) {
 	return li, nil
 }
 
-// Determines if the current log record is the earliest record in the log file.
+// HasNext returns true if the current log record is the earliest record in the
+// log file. (Recall that the log records are written backwards in the file.)
 func (li *LogIterator) HasNext() bool {
 	return li.currentpos < li.fm.BlockSize || li.blk.Blknum > 0
 }
 
-// Moves to the next log record in the block.
+// Next moves to the next log record in the block.
 // If there are no more records in the block, then move to the previous block
 // and return the log record from there.
 func (li *LogIterator) Next() ([]byte, error) {
@@ -49,8 +51,8 @@ func (li *LogIterator) Next() ([]byte, error) {
 	return rec, nil
 }
 
-// Moves to the specified log block and positions it at the first record
-// in that block (i.e., the most recent one).
+// moveToBlock moves to the specified log block and positions the iterator at
+// the first record in that block (i.e., the most recent one).
 func (li *LogIterator) moveToBlock(blk file.BlockId) error {
 	err := li.fm.Read(blk, li.p)
 	if err != nil {
