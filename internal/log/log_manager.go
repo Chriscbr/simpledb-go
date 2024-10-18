@@ -15,7 +15,7 @@ type LogMgr struct {
 	fm           *file.FileMgr
 	logfile      string
 	logpage      *file.Page
-	currentblk   *file.BlockId
+	currentblk   file.BlockId
 	latestLSN    int
 	lastSavedLSN int
 	mu           sync.Mutex
@@ -34,7 +34,7 @@ func NewLogMgr(fm *file.FileMgr, logfile string) (*LogMgr, error) {
 		fm:           fm,
 		logfile:      logfile,
 		logpage:      logpage,
-		currentblk:   nil,
+		currentblk:   file.BlockId{},
 		latestLSN:    0,
 		lastSavedLSN: 0,
 	}
@@ -44,7 +44,8 @@ func NewLogMgr(fm *file.FileMgr, logfile string) (*LogMgr, error) {
 			return nil, err
 		}
 	} else {
-		lm.currentblk = file.NewBlockId(logfile, logsize-1)
+		blk := file.NewBlockId(logfile, logsize-1)
+		lm.currentblk = blk
 	}
 
 	return lm, nil

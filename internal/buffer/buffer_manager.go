@@ -69,7 +69,7 @@ func (bm *BufferMgr) Unpin(b *Buffer) {
 // Pins a buffer to the specified block, potentially waiting until a buffer
 // becomes available. If no buffer becomes available within a fixed time period,
 // a BufferAbortError error is returned.
-func (bm *BufferMgr) Pin(blk *file.BlockId) (*Buffer, error) {
+func (bm *BufferMgr) Pin(blk file.BlockId) (*Buffer, error) {
 	bm.mu.Lock()
 	defer bm.mu.Unlock()
 
@@ -96,7 +96,7 @@ func (bm *BufferMgr) Pin(blk *file.BlockId) (*Buffer, error) {
 // assigned to that block, then that buffer is used; otherwise, an unpinned
 // buffer from the pool is chosen. Returns nil if there are
 // no available buffers.
-func (bm *BufferMgr) tryToPin(blk *file.BlockId) (*Buffer, error) {
+func (bm *BufferMgr) tryToPin(blk file.BlockId) (*Buffer, error) {
 	b := bm.findExistingBuffer(blk)
 	if b == nil {
 		b = bm.chooseUnpinnedBuffer()
@@ -118,9 +118,9 @@ func (bm *BufferMgr) tryToPin(blk *file.BlockId) (*Buffer, error) {
 	return b, nil
 }
 
-func (bm *BufferMgr) findExistingBuffer(blk *file.BlockId) *Buffer {
+func (bm *BufferMgr) findExistingBuffer(blk file.BlockId) *Buffer {
 	for _, b := range bm.bufpool {
-		if b.Blk != nil && b.Blk.Equal(blk) {
+		if b.Blk.Equal(blk) {
 			return b
 		}
 	}

@@ -1,6 +1,7 @@
 package buffer
 
 import (
+	"errors"
 	"simpledb/internal/file"
 	"simpledb/internal/log"
 )
@@ -13,7 +14,7 @@ type Buffer struct {
 	fm       *file.FileMgr
 	lm       *log.LogMgr
 	Contents *file.Page
-	Blk      *file.BlockId
+	Blk      file.BlockId
 	pins     int
 	Txnum    int
 	// The most recent LSN (log sequence number) associated with the buffer,
@@ -29,7 +30,7 @@ func NewBuffer(fm *file.FileMgr, lm *log.LogMgr) *Buffer {
 		fm:       fm,
 		lm:       lm,
 		Contents: file.NewPage(fm.BlockSize),
-		Blk:      nil,
+		Blk:      file.BlockId{},
 		pins:     0,
 		Txnum:    -1,
 		lsn:      -1,
@@ -52,7 +53,7 @@ func (b *Buffer) IsPinned() bool {
 
 // Reads the contents of the specified block into the contents of the buffer.
 // If the buffer was dirty, then its previous contents are first written to disk.
-func (b *Buffer) AssignToBlock(blk *file.BlockId) error {
+func (b *Buffer) AssignToBlock(blk file.BlockId) error {
 	if err := b.Flush(); err != nil {
 		return err
 	}
@@ -69,6 +70,9 @@ func (b *Buffer) Flush() error {
 	if b.Txnum >= 0 {
 		if err := b.lm.Flush(b.lsn); err != nil {
 			return err
+		}
+		if b.Blk.Filename == "" {
+			return errors.New("buffer is not assigned to a block")
 		}
 		if err := b.fm.Write(b.Blk, b.Contents); err != nil {
 			return err
