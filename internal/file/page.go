@@ -10,14 +10,12 @@ type Page struct {
 // Creates a new Page with the given blocksize.
 func NewPage(blocksize int) *Page {
 	buf := make([]byte, blocksize)
-	p := &Page{buf}
-	return p
+	return &Page{buf}
 }
 
 // Creates a new Page from the given byte slice.
 func NewPageFromBytes(buf []byte) *Page {
-	p := &Page{buf}
-	return p
+	return &Page{buf}
 }
 
 // Retrieves int at the specified offset.

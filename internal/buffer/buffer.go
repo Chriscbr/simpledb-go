@@ -25,7 +25,7 @@ type Buffer struct {
 
 // Creates a new Buffer instance.
 func NewBuffer(fm *file.FileMgr, lm *log.LogMgr) *Buffer {
-	b := &Buffer{
+	return &Buffer{
 		fm:       fm,
 		lm:       lm,
 		Contents: file.NewPage(fm.BlockSize),
@@ -34,7 +34,6 @@ func NewBuffer(fm *file.FileMgr, lm *log.LogMgr) *Buffer {
 		Txnum:    -1,
 		lsn:      -1,
 	}
-	return b
 }
 
 // Marks the buffer as modified by the specified transaction and updates the

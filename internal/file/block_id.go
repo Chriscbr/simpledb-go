@@ -10,8 +10,7 @@ type BlockId struct {
 
 // Creates a new BlockId with the given filename and block number.
 func NewBlockId(filename string, blknum int) *BlockId {
-	bid := &BlockId{filename, blknum}
-	return bid
+	return &BlockId{filename, blknum}
 }
 
 // Returns a string representation of the BlockId.
