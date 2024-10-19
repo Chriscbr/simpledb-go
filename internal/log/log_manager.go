@@ -69,8 +69,9 @@ func (lm *LogMgr) Flush(lsn int) error {
 // of the last-written record (the "boundary").
 // Storing the records backwards makes it easy to read them
 // in reverse order.
+// Returns the LSN (log sequence number) of the final value.
 func (lm *LogMgr) Append(logrec []byte) (int, error) {
-	// Prevent two threads from mutating the same page
+	// Prevent two threads from mutating the same page or latestLSN
 	lm.mu.Lock()
 	defer lm.mu.Unlock()
 

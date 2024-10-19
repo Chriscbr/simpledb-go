@@ -1,12 +1,17 @@
 package tx
 
 import (
+	"simpledb/internal/buffer"
 	"simpledb/internal/file"
+	"simpledb/internal/log"
 )
 
+// Transaction provides transaction management for clients, ensuring that
+// all transactions are serializable, recoverable, and in general satisfy
+// the ACID properties.
 type Transaction struct{}
 
-func NewTransaction() *Transaction {
+func NewTransaction(fm *file.FileMgr, lm *log.LogMgr, bm *buffer.BufferMgr) *Transaction {
 	return &Transaction{}
 }
 
