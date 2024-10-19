@@ -4,6 +4,7 @@ import (
 	"simpledb/internal/buffer"
 	"simpledb/internal/file"
 	"simpledb/internal/log"
+	"simpledb/internal/tx"
 )
 
 type SimpleDB struct {
@@ -32,6 +33,10 @@ func NewSimpleDB(dirname string, blocksize int, numbufs int) (*SimpleDB, error) 
 
 	db := &SimpleDB{fm, lm, bm}
 	return db, nil
+}
+
+func (db *SimpleDB) NewTx() (*tx.Transaction, error) {
+	return tx.NewTransaction(db.FileMgr, db.LogMgr, db.BufferMgr)
 }
 
 // Close closes the SimpleDB instance

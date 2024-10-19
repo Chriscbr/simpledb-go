@@ -11,7 +11,6 @@ type LogIterator struct {
 	blk        file.BlockID
 	p          *file.Page
 	currentpos int
-	boundary   int
 }
 
 // NewLogIterator creates an iterator for the records in the log file,
@@ -24,7 +23,6 @@ func NewLogIterator(fm *file.FileMgr, blk file.BlockID) (*LogIterator, error) {
 		blk:        blk,
 		p:          p,
 		currentpos: 0,
-		boundary:   0,
 	}
 	if err := li.moveToBlock(blk); err != nil {
 		return nil, err
@@ -62,7 +60,6 @@ func (li *LogIterator) moveToBlock(blk file.BlockID) error {
 		return err
 	}
 
-	li.boundary = int(li.p.GetInt(0)) // TODO: handle int overflow better
-	li.currentpos = li.boundary
+	li.currentpos = int(li.p.GetInt(0)) // TODO: handle int overflow better
 	return nil
 }

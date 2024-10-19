@@ -44,8 +44,10 @@ func NewLogMgr(fm *file.FileMgr, logfile string) (*LogMgr, error) {
 			return nil, err
 		}
 	} else {
-		blk := file.NewBlockID(logfile, logsize-1)
-		lm.currentblk = blk
+		lm.currentblk = file.NewBlockID(logfile, logsize-1)
+		if err := lm.fm.Read(lm.currentblk, lm.logpage); err != nil {
+			return nil, err
+		}
 	}
 
 	return lm, nil

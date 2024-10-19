@@ -1,19 +1,15 @@
 package tx
 
 import (
-	"fmt"
 	"os"
 	"simpledb/internal/buffer"
 	"simpledb/internal/file"
 	"simpledb/internal/log"
-	"simpledb/internal/server"
 	"testing"
 )
 
 var (
-	fm   *file.FileMgr
-	bm   *buffer.BufferMgr
-	db   *server.SimpleDB
+	db   *DB
 	blk0 file.BlockID
 	blk1 file.BlockID
 )
@@ -23,33 +19,25 @@ func TestRecovery(t *testing.T) {
 		os.RemoveAll("recoverytest")
 	})
 
-	db, err := server.NewSimpleDB("recoverytest", 400, 8)
-	if err != nil {
-		t.Fatalf("Failed to create SimpleDB: %v", err)
-	}
-	defer db.Close()
+	db = createPartialDB(t, "recoverytest", 400, 8)
 
-	fm = db.FileMgr
-	bm = db.BufferMgr
 	blk0 = file.NewBlockID("testfile", 0)
 	blk1 = file.NewBlockID("testfile", 1)
 
-	length, err := fm.Length("testfile")
-	if err != nil {
-		t.Fatalf("Failed to get file length: %v", err)
-	}
+	initialize(t)
+	modify(t)
 
-	if length == 0 {
-		initialize(t)
-		modify(t)
-	} else {
-		recover(t)
-	}
+	closePartialDB(db)
+	db = createPartialDB(t, "recoverytest", 400, 8)
+
+	recover(t)
+
+	closePartialDB(db)
 }
 
 func initialize(t *testing.T) {
-	tx1 := newTransaction(t)
-	tx2 := newTransaction(t)
+	tx1 := newTx(t)
+	tx2 := newTx(t)
 
 	err := tx1.Pin(blk0)
 	if err != nil {
@@ -62,23 +50,43 @@ func initialize(t *testing.T) {
 
 	pos := 0
 	for i := 0; i < 6; i++ {
-		tx1.SetInt(blk0, pos, int32(pos), false)
-		tx2.SetInt(blk1, pos, int32(pos), false)
+		err = tx1.SetInt(blk0, pos, int32(pos), false)
+		if err != nil {
+			t.Fatalf("Failed to set int: %v", err)
+		}
+		err = tx2.SetInt(blk1, pos, int32(pos), false)
+		if err != nil {
+			t.Fatalf("Failed to set int: %v", err)
+		}
 		pos += 4 // Integer size in bytes
 	}
 
-	tx1.SetString(blk0, 30, "abc", false)
-	tx2.SetString(blk1, 30, "def", false)
+	err = tx1.SetString(blk0, 30, "abc", false)
+	if err != nil {
+		t.Fatalf("Failed to set string: %v", err)
+	}
+	err = tx2.SetString(blk1, 30, "def", false)
+	if err != nil {
+		t.Fatalf("Failed to set string: %v", err)
+	}
 
-	tx1.Commit()
-	tx2.Commit()
+	err = tx1.Commit()
+	if err != nil {
+		t.Fatalf("Failed to commit transaction: %v", err)
+	}
+	err = tx2.Commit()
+	if err != nil {
+		t.Fatalf("Failed to commit transaction: %v", err)
+	}
 
 	printValues(t, "After Initialization:")
 }
 
+// modify creates two new transactions, but does not commit them.
+// The first is rolled back, and the second is left uncompleted.
 func modify(t *testing.T) {
-	tx3 := newTransaction(t)
-	tx4 := newTransaction(t)
+	tx3 := newTx(t)
+	tx4 := newTx(t)
 
 	err := tx3.Pin(blk0)
 	if err != nil {
@@ -91,50 +99,67 @@ func modify(t *testing.T) {
 
 	pos := 0
 	for i := 0; i < 6; i++ {
-		tx3.SetInt(blk0, pos, int32(pos+100), true)
-		tx4.SetInt(blk1, pos, int32(pos+100), true)
+		err = tx3.SetInt(blk0, pos, int32(pos+100), true)
+		if err != nil {
+			t.Fatalf("Failed to set int: %v", err)
+		}
+		err = tx4.SetInt(blk1, pos, int32(pos+100), true)
+		if err != nil {
+			t.Fatalf("Failed to set int: %v", err)
+		}
 		pos += 4 // Integer size in bytes
 	}
 
-	tx3.SetString(blk0, 30, "uvw", true)
-	tx4.SetString(blk1, 30, "xyz", true)
+	err = tx3.SetString(blk0, 30, "uvw", true)
+	if err != nil {
+		t.Fatalf("Failed to set string: %v", err)
+	}
+	err = tx4.SetString(blk1, 30, "xyz", true)
+	if err != nil {
+		t.Fatalf("Failed to set string: %v", err)
+	}
 
-	err = bm.FlushAll(3)
+	err = db.bm.FlushAll(3)
 	if err != nil {
 		t.Fatalf("Failed to flush buffers: %v", err)
 	}
-	err = bm.FlushAll(4)
+	err = db.bm.FlushAll(4)
 	if err != nil {
 		t.Fatalf("Failed to flush buffers: %v", err)
 	}
 
 	printValues(t, "After modification:")
 
-	tx3.Rollback()
+	err = tx3.Rollback()
+	if err != nil {
+		t.Fatalf("Failed to rollback transaction: %v", err)
+	}
 	printValues(t, "After rollback:")
 	// tx4 is intentionally not committed or rolled back
 	// so all of its changes should be undone during recovery
 }
 
 func recover(t *testing.T) {
-	tx := newTransaction(t)
-	defer tx.Commit()
+	tx := newTx(t)
 
-	tx.Recover()
+	err := tx.Recover()
+	if err != nil {
+		t.Fatalf("Failed to recover transaction: %v", err)
+	}
 	printValues(t, "After recovery:")
 }
 
 func printValues(t *testing.T, msg string) {
 	t.Log(msg)
 
-	p0 := file.NewPage(fm.BlockSize)
-	p1 := file.NewPage(fm.BlockSize)
+	p0 := file.NewPage(db.fm.BlockSize)
+	p1 := file.NewPage(db.fm.BlockSize)
 
-	err := fm.Read(blk0, p0)
+	err := db.fm.Read(blk0, p0)
 	if err != nil {
 		t.Fatalf("Failed to read block: %v", err)
 	}
-	err = fm.Read(blk1, p1)
+	err = db.fm.Read(blk1, p1)
 	if err != nil {
 		t.Fatalf("Failed to read block: %v", err)
 	}
@@ -147,18 +172,42 @@ func printValues(t *testing.T, msg string) {
 	}
 	values = append(values, p0.GetString(30), p1.GetString(30))
 
-	t.Log(fmt.Sprintf("%v %v %v %v %v %v %v %v %v %v %v %v %v %v",
-		values...))
+	t.Logf("%v %v %v %v %v %v %v %v %v %v %v %v %v %v",
+		values...)
 }
 
-func newTransaction(t *testing.T) *Transaction {
-	lm, err := log.NewLogMgr(fm, log.DefaultLogFile)
-	if err != nil {
-		t.Fatalf("Failed to create LogMgr: %v", err)
-	}
-	tx, err := NewTransaction(fm, lm, bm)
+func newTx(t *testing.T) *Transaction {
+	tx, err := NewTransaction(db.fm, db.lm, db.bm)
 	if err != nil {
 		t.Fatalf("Failed to create Transaction: %v", err)
 	}
 	return tx
+}
+
+type DB struct {
+	fm *file.FileMgr
+	lm *log.LogMgr
+	bm *buffer.BufferMgr
+}
+
+func createPartialDB(t *testing.T, dirname string, blocksize int, numbufs int) *DB {
+	fm, err := file.NewFileMgr(dirname, blocksize)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	lm, err := log.NewLogMgr(fm, log.DefaultLogFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bm, err := buffer.NewBufferMgr(fm, lm, numbufs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return &DB{fm, lm, bm}
+}
+
+func closePartialDB(db *DB) {
+	db.fm.Close()
 }
