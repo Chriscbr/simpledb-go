@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"simpledb/internal/file"
 	"simpledb/internal/log"
-	"simpledb/internal/tx"
 )
 
 // Check that RollbackRecord implements LogRecord
@@ -33,7 +32,7 @@ func (r *RollbackRecord) TxNumber() int {
 }
 
 // Undo does nothing, because a rollback record contains no undo information.
-func (r *RollbackRecord) Undo(tx *tx.Transaction) error {
+func (r *RollbackRecord) Undo(tx Transaction) error {
 	return nil
 }
 

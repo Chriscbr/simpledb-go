@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"simpledb/internal/file"
 	"simpledb/internal/log"
-	"simpledb/internal/tx"
 )
 
 // Check that SetStringRecord implements LogRecord
@@ -47,7 +46,7 @@ func (r *SetStringRecord) TxNumber() int {
 // Undo replaces the specified data value with the value saved in the log record.
 // The method pins a buffer to the specified block, calls SetString to restore
 // the saved value, and unpins the buffer.
-func (r *SetStringRecord) Undo(tx *tx.Transaction) error {
+func (r *SetStringRecord) Undo(tx Transaction) error {
 	err := tx.Pin(r.blk)
 	if err != nil {
 		return err

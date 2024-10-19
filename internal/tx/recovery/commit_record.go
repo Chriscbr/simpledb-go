@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"simpledb/internal/file"
 	"simpledb/internal/log"
-	"simpledb/internal/tx"
 )
 
 // Check that CommitRecord implements LogRecord
@@ -33,7 +32,7 @@ func (r *CommitRecord) TxNumber() int {
 }
 
 // Undo does nothing, because a commit record contains no undo information.
-func (r *CommitRecord) Undo(tx *tx.Transaction) error {
+func (r *CommitRecord) Undo(tx Transaction) error {
 	return nil
 }
 

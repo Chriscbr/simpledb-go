@@ -3,7 +3,6 @@ package recovery
 import (
 	"simpledb/internal/file"
 	"simpledb/internal/log"
-	"simpledb/internal/tx"
 )
 
 // Check that CheckpointRecord implements LogRecord
@@ -30,7 +29,7 @@ func (r *CheckpointRecord) TxNumber() int {
 }
 
 // Undo does nothing, because a checkpoint record contains no undo information.
-func (r *CheckpointRecord) Undo(tx *tx.Transaction) error {
+func (r *CheckpointRecord) Undo(tx Transaction) error {
 	return nil
 }
 

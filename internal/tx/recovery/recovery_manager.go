@@ -3,7 +3,6 @@ package recovery
 import (
 	"simpledb/internal/buffer"
 	"simpledb/internal/log"
-	"simpledb/internal/tx"
 	"slices"
 )
 
@@ -12,12 +11,12 @@ import (
 type RecoveryMgr struct {
 	lm    *log.LogMgr
 	bm    *buffer.BufferMgr
-	tx    *tx.Transaction
+	tx    Transaction
 	txnum int
 }
 
 // NewRecoveryMgr creaters a recovery manager for the specified transaction.
-func NewRecoveryMgr(tx *tx.Transaction, txnum int, lm *log.LogMgr, bm *buffer.BufferMgr) (*RecoveryMgr, error) {
+func NewRecoveryMgr(tx Transaction, txnum int, lm *log.LogMgr, bm *buffer.BufferMgr) (*RecoveryMgr, error) {
 	rm := &RecoveryMgr{lm, bm, tx, txnum}
 	_, err := WriteStartToLog(lm, txnum)
 	if err != nil {

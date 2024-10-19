@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"simpledb/internal/file"
 	"simpledb/internal/log"
-	"simpledb/internal/tx"
 )
 
 // Check that StartRecord implements LogRecord
@@ -33,7 +32,7 @@ func (r *StartRecord) TxNumber() int {
 }
 
 // Undo does nothing, because a start record contains no undo information.
-func (r *StartRecord) Undo(tx *tx.Transaction) error {
+func (r *StartRecord) Undo(tx Transaction) error {
 	return nil
 }
 
