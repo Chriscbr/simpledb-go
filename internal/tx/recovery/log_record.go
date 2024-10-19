@@ -10,11 +10,11 @@ type LogRecordType = int
 
 const (
 	Checkpoint LogRecordType = 0
-	Start                    = 1
-	Commit                   = 2
-	Rollback                 = 3
-	SetInt                   = 4
-	SetString                = 5
+	Start      LogRecordType = 1
+	Commit     LogRecordType = 2
+	Rollback   LogRecordType = 3
+	SetInt     LogRecordType = 4
+	SetString  LogRecordType = 5
 )
 
 // LogRecord is an interface implemented by each type of log record.
