@@ -1,6 +1,7 @@
 package recovery
 
 import (
+	"fmt"
 	"simpledb/internal/file"
 	"simpledb/internal/tx"
 )
@@ -28,22 +29,22 @@ type LogRecord interface {
 }
 
 // CreateLogRecord interprets the bytes returned by the log iterator and creates the appropriate LogRecord
-func CreateLogRecord(bytes []byte) LogRecord {
+func CreateLogRecord(bytes []byte) (LogRecord, error) {
 	p := file.NewPageFromBytes(bytes)
 	switch LogRecordType(p.GetInt(0)) {
 	case Checkpoint:
-		return NewCheckpointRecord()
+		return NewCheckpointRecord(), nil
 	case Start:
-		return NewStartRecord(p)
+		return NewStartRecord(p), nil
 	case Commit:
-		return NewCommitRecord(p)
+		return NewCommitRecord(p), nil
 	case Rollback:
-		return NewRollbackRecord(p)
+		return NewRollbackRecord(p), nil
 	case SetInt:
-		return NewSetIntRecord(p)
+		return NewSetIntRecord(p), nil
 	case SetString:
-		return NewSetStringRecord(p)
+		return NewSetStringRecord(p), nil
 	default:
-		return nil
+		return nil, fmt.Errorf("unknown log record type: %d", p.GetInt(0))
 	}
 }

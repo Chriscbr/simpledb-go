@@ -3,6 +3,7 @@ package tx
 import (
 	"simpledb/internal/buffer"
 	"simpledb/internal/file"
+	"slices"
 )
 
 // BufferList manages a transaction's currently-pinned buffers.
@@ -49,7 +50,7 @@ func (bl *BufferList) Unpin(blk file.BlockID) {
 	}
 	bl.bm.Unpin(b)
 	bl.removePin(blk)
-	if !bl.containsPin(blk) {
+	if !slices.Contains(bl.pins, blk) {
 		delete(bl.buffers, blk)
 	}
 }
@@ -72,14 +73,4 @@ func (bl *BufferList) removePin(blk file.BlockID) {
 			return
 		}
 	}
-}
-
-// containsPin checks if a block is in the pins slice.
-func (bl *BufferList) containsPin(blk file.BlockID) bool {
-	for _, pin := range bl.pins {
-		if pin == blk {
-			return true
-		}
-	}
-	return false
 }

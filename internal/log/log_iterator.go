@@ -1,6 +1,9 @@
 package log
 
-import "simpledb/internal/file"
+import (
+	"fmt"
+	"simpledb/internal/file"
+)
 
 // LogIterator lets you move through the records of the log file in reverse order.
 type LogIterator struct {
@@ -43,7 +46,7 @@ func (li *LogIterator) Next() ([]byte, error) {
 		li.blk = file.NewBlockID(li.blk.Filename, li.blk.Blknum-1)
 		err := li.moveToBlock(li.blk)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("log iteration error: %w", err)
 		}
 	}
 	rec := li.p.GetBytes(li.currentpos)
