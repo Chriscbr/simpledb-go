@@ -34,6 +34,10 @@ func TestFileMgr(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	t.Logf("offset %d contains %d\n", pos2, p2.GetInt(pos2))
-	t.Logf("offset %d contains %s\n", pos1, p2.GetString(pos1))
+	if p2.GetInt(pos2) != 345 {
+		t.Errorf("Expected offset %d to contain 345, but got %d", pos2, p2.GetInt(pos2))
+	}
+	if p2.GetString(pos1) != "abcdefghijklm" {
+		t.Errorf("Expected offset %d to contain 'abcdefghijklm', but got %s", pos1, p2.GetString(pos1))
+	}
 }

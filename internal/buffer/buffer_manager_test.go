@@ -24,7 +24,9 @@ func TestBuffer(t *testing.T) {
 	n := p.GetInt(80)
 	p.SetInt(80, n+1)
 	b1.SetModified(1, 0) // placeholder values
-	t.Logf("The new value is %v\n", n+1)
+	if got := p.GetInt(80); got != n+1 {
+		t.Errorf("Expected new value to be %d, but got %d", n+1, got)
+	}
 	bm.Unpin(b1)
 
 	// One of these pins will flush b1 to disk:
@@ -81,9 +83,11 @@ func TestBufferMgr(t *testing.T) {
 	pinBlock(3, 0) // block 0 pinned twice
 	pinBlock(4, 1) // block 1 repinned
 
-	t.Logf("Available buffers: %d", bm.Available())
+	if bm.Available() != 0 {
+		t.Errorf("Expected 0 available buffers, but got %d", bm.Available())
+	}
 
-	t.Log("Attempting to pin block 3...")
+	// Attempting to pin block 3 will not work; no buffers left
 	_, err := bm.Pin(file.NewBlockId("testfile", 3)) // will not work; no buffers left
 	if err == nil {
 		t.Fatal("Expected BufferAbortError, but got nil")
@@ -91,18 +95,29 @@ func TestBufferMgr(t *testing.T) {
 	if _, ok := err.(*BufferAbortError); !ok {
 		t.Fatalf("Expected BufferAbortError, but got %v", err)
 	}
-	t.Log("Exception: No available buffers")
 
 	bm.Unpin(bs[2])
 	bs[2] = nil
 
 	pinBlock(5, 3) // now this works
 
-	t.Log("Final Buffer Allocation:")
-	for i, b := range bs {
-		if b != nil {
-			t.Logf("bs[%d] pinned to block %v", i, b.Blk)
-		}
+	if bs[0].Blk != file.NewBlockId("testfile", 0) {
+		t.Errorf("bs[0] should be pinned to block [file testfile, block 0], but got %v", bs[0].Blk)
+	}
+	if bs[3].Blk != file.NewBlockId("testfile", 0) {
+		t.Errorf("bs[3] should be pinned to block [file testfile, block 0], but got %v", bs[3].Blk)
+	}
+	if bs[4].Blk != file.NewBlockId("testfile", 1) {
+		t.Errorf("bs[4] should be pinned to block [file testfile, block 1], but got %v", bs[4].Blk)
+	}
+	if bs[5].Blk != file.NewBlockId("testfile", 3) {
+		t.Errorf("bs[5] should be pinned to block [file testfile, block 3], but got %v", bs[5].Blk)
+	}
+	if bs[1] != nil {
+		t.Errorf("bs[1] should be nil, but got %v", bs[1])
+	}
+	if bs[2] != nil {
+		t.Errorf("bs[2] should be nil, but got %v", bs[2])
 	}
 }
 
@@ -135,8 +150,12 @@ func TestBufferFile(t *testing.T) {
 		t.Fatal(err)
 	}
 	p2 := b2.Contents
-	t.Logf("offset %v contains %v", pos2, p2.GetInt(pos2))
-	t.Logf("offset %v contains %v", pos1, p2.GetString(pos1))
+	if p2.GetInt(pos2) != 345 {
+		t.Errorf("Expected offset %v to contain 345, but got %v", pos2, p2.GetInt(pos2))
+	}
+	if p2.GetString(pos1) != "abcdefghijklm" {
+		t.Errorf("Expected offset %v to contain 'abcdefghijklm', but got %v", pos1, p2.GetString(pos1))
+	}
 	bm.Unpin(b2)
 }
 
