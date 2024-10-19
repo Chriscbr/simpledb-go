@@ -69,7 +69,7 @@ func (fm *FileMgr) Close() {
 }
 
 // Read reads the contents of the specified block into the specified page
-func (fm *FileMgr) Read(blk BlockId, p *Page) error {
+func (fm *FileMgr) Read(blk BlockID, p *Page) error {
 	fm.mu.Lock()
 	defer fm.mu.Unlock()
 
@@ -91,7 +91,7 @@ func (fm *FileMgr) Read(blk BlockId, p *Page) error {
 }
 
 // Write writes the contents of a page to the specified block
-func (fm *FileMgr) Write(blk BlockId, p *Page) error {
+func (fm *FileMgr) Write(blk BlockID, p *Page) error {
 	fm.mu.Lock()
 	defer fm.mu.Unlock()
 
@@ -111,28 +111,28 @@ func (fm *FileMgr) Write(blk BlockId, p *Page) error {
 // Append seeks to the end of the file and writes an empty array of bytes,
 // extending the file. It returns the block id of the newly created block
 // within the file.
-func (fm *FileMgr) Append(filename string) (BlockId, error) {
+func (fm *FileMgr) Append(filename string) (BlockID, error) {
 	fm.mu.Lock()
 	defer fm.mu.Unlock()
 
 	f, err := fm.getFile(filename)
 	if err != nil {
-		return BlockId{}, err
+		return BlockID{}, err
 	}
 
 	info, err := f.Stat()
 	if err != nil {
-		return BlockId{}, fmt.Errorf("cannot stat file %s: %w", filename, err)
+		return BlockID{}, fmt.Errorf("cannot stat file %s: %w", filename, err)
 	}
 
 	newblknum := int(info.Size() / int64(fm.BlockSize))
 	buf := make([]byte, fm.BlockSize) // an empty block of data
 	offset := int64(newblknum * fm.BlockSize)
 	if _, err := f.WriteAt(buf, offset); err != nil {
-		return BlockId{}, fmt.Errorf("cannot write to file %s: %w", filename, err)
+		return BlockID{}, fmt.Errorf("cannot write to file %s: %w", filename, err)
 	}
 
-	return NewBlockId(filename, newblknum), nil
+	return NewBlockID(filename, newblknum), nil
 }
 
 // Length returns the number of blocks in the specified file

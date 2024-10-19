@@ -22,29 +22,29 @@ func (t *Transaction) Recover() {
 	// TODO: implement
 }
 
-func (t *Transaction) Pin(blk file.BlockId) {
+func (t *Transaction) Pin(blk file.BlockID) {
 	// TODO: implement
 }
 
-func (t *Transaction) Unpin(blk file.BlockId) {
+func (t *Transaction) Unpin(blk file.BlockID) {
 	// TODO: implement
 }
 
-func (t *Transaction) GetInt(blk file.BlockId, offset int) int {
+func (t *Transaction) GetInt(blk file.BlockID, offset int) int {
 	// TODO: implement
 	return 0
 }
 
-func (t *Transaction) GetString(blk file.BlockId, offset int) string {
+func (t *Transaction) GetString(blk file.BlockID, offset int) string {
 	// TODO: implement
 	return ""
 }
 
-func (t *Transaction) SetInt(blk file.BlockId, offset int, value int, okToLog bool) {
+func (t *Transaction) SetInt(blk file.BlockID, offset int, value int, okToLog bool) {
 	// TODO: implement
 }
 
-func (t *Transaction) SetString(blk file.BlockId, offset int, value string, okToLog bool) {
+func (t *Transaction) SetString(blk file.BlockID, offset int, value string, okToLog bool) {
 	// TODO: implement
 }
 
@@ -58,9 +58,9 @@ func (t *Transaction) Size(filename string) int {
 	return 0
 }
 
-func (t *Transaction) Append(filename string) file.BlockId {
+func (t *Transaction) Append(filename string) file.BlockID {
 	// TODO: implement
-	return file.BlockId{}
+	return file.BlockID{}
 }
 
 func (t *Transaction) BlockSize() int {

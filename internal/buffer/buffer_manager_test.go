@@ -16,7 +16,7 @@ func TestBuffer(t *testing.T) {
 	defer closePartialDB(db)
 
 	bm := db.bm
-	b1, err := bm.Pin(file.NewBlockId("testfile", 1))
+	b1, err := bm.Pin(file.NewBlockID("testfile", 1))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -30,21 +30,21 @@ func TestBuffer(t *testing.T) {
 	bm.Unpin(b1)
 
 	// One of these pins will flush b1 to disk:
-	b2, err := bm.Pin(file.NewBlockId("testfile", 2))
+	b2, err := bm.Pin(file.NewBlockID("testfile", 2))
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = bm.Pin(file.NewBlockId("testfile", 3))
+	_, err = bm.Pin(file.NewBlockID("testfile", 3))
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = bm.Pin(file.NewBlockId("testfile", 4))
+	_, err = bm.Pin(file.NewBlockID("testfile", 4))
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	bm.Unpin(b2)
-	b2, err = bm.Pin(file.NewBlockId("testfile", 1))
+	b2, err = bm.Pin(file.NewBlockID("testfile", 1))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -66,7 +66,7 @@ func TestBufferMgr(t *testing.T) {
 	bm := db.bm
 	bs := make([]*Buffer, 6)
 	pinBlock := func(index int, blockNum int) {
-		b, err := bm.Pin(file.NewBlockId("testfile", blockNum))
+		b, err := bm.Pin(file.NewBlockID("testfile", blockNum))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -88,7 +88,7 @@ func TestBufferMgr(t *testing.T) {
 	}
 
 	// Attempting to pin block 3 will not work; no buffers left
-	_, err := bm.Pin(file.NewBlockId("testfile", 3)) // will not work; no buffers left
+	_, err := bm.Pin(file.NewBlockID("testfile", 3)) // will not work; no buffers left
 	if err == nil {
 		t.Fatal("Expected BufferAbortError, but got nil")
 	}
@@ -101,16 +101,16 @@ func TestBufferMgr(t *testing.T) {
 
 	pinBlock(5, 3) // now this works
 
-	if bs[0].Blk != file.NewBlockId("testfile", 0) {
+	if bs[0].Blk != file.NewBlockID("testfile", 0) {
 		t.Errorf("bs[0] should be pinned to block [file testfile, block 0], but got %v", bs[0].Blk)
 	}
-	if bs[3].Blk != file.NewBlockId("testfile", 0) {
+	if bs[3].Blk != file.NewBlockID("testfile", 0) {
 		t.Errorf("bs[3] should be pinned to block [file testfile, block 0], but got %v", bs[3].Blk)
 	}
-	if bs[4].Blk != file.NewBlockId("testfile", 1) {
+	if bs[4].Blk != file.NewBlockID("testfile", 1) {
 		t.Errorf("bs[4] should be pinned to block [file testfile, block 1], but got %v", bs[4].Blk)
 	}
-	if bs[5].Blk != file.NewBlockId("testfile", 3) {
+	if bs[5].Blk != file.NewBlockID("testfile", 3) {
 		t.Errorf("bs[5] should be pinned to block [file testfile, block 3], but got %v", bs[5].Blk)
 	}
 	if bs[1] != nil {
@@ -130,7 +130,7 @@ func TestBufferFile(t *testing.T) {
 	defer closePartialDB(db)
 
 	bm := db.bm
-	blk := file.NewBlockId("testfile", 2)
+	blk := file.NewBlockID("testfile", 2)
 	pos1 := 88
 
 	b1, err := bm.Pin(blk)

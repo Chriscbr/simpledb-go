@@ -7,29 +7,29 @@ import (
 
 // BufferList manages a transaction's currently-pinned buffers.
 type BufferList struct {
-	buffers map[file.BlockId]*buffer.Buffer
+	buffers map[file.BlockID]*buffer.Buffer
 	// Keep track of how many times each block has been pinned
-	pins []file.BlockId
+	pins []file.BlockID
 	bm   *buffer.BufferMgr
 }
 
 // NewBufferList creates a new BufferList instance
 func NewBufferList(bm *buffer.BufferMgr) *BufferList {
 	return &BufferList{
-		buffers: make(map[file.BlockId]*buffer.Buffer),
-		pins:    make([]file.BlockId, 0),
+		buffers: make(map[file.BlockID]*buffer.Buffer),
+		pins:    make([]file.BlockID, 0),
 		bm:      bm,
 	}
 }
 
 // GetBuffer returns the buffer pinned to the specified block.
 // The method returns nil if the transaction has not pinned the block.
-func (bl *BufferList) GetBuffer(blk file.BlockId) *buffer.Buffer {
+func (bl *BufferList) GetBuffer(blk file.BlockID) *buffer.Buffer {
 	return bl.buffers[blk]
 }
 
 // Pin pins the specified block and keeps track of the buffer internally.
-func (bl *BufferList) Pin(blk file.BlockId) error {
+func (bl *BufferList) Pin(blk file.BlockID) error {
 	b, err := bl.bm.Pin(blk)
 	if err != nil {
 		return err
@@ -42,7 +42,7 @@ func (bl *BufferList) Pin(blk file.BlockId) error {
 }
 
 // Unpin unpins the specified block.
-func (bl *BufferList) Unpin(blk file.BlockId) {
+func (bl *BufferList) Unpin(blk file.BlockID) {
 	b, exists := bl.buffers[blk]
 	if !exists {
 		return
@@ -60,12 +60,12 @@ func (bl *BufferList) UnpinAll() {
 		b := bl.buffers[blk]
 		bl.bm.Unpin(b)
 	}
-	bl.buffers = make(map[file.BlockId]*buffer.Buffer)
-	bl.pins = make([]file.BlockId, 0)
+	bl.buffers = make(map[file.BlockID]*buffer.Buffer)
+	bl.pins = make([]file.BlockID, 0)
 }
 
 // removePin removes a block from the pins slice.
-func (bl *BufferList) removePin(blk file.BlockId) {
+func (bl *BufferList) removePin(blk file.BlockID) {
 	for i, pin := range bl.pins {
 		if pin == blk {
 			bl.pins = append(bl.pins[:i], bl.pins[i+1:]...)
@@ -75,7 +75,7 @@ func (bl *BufferList) removePin(blk file.BlockId) {
 }
 
 // containsPin checks if a block is in the pins slice.
-func (bl *BufferList) containsPin(blk file.BlockId) bool {
+func (bl *BufferList) containsPin(blk file.BlockID) bool {
 	for _, pin := range bl.pins {
 		if pin == blk {
 			return true

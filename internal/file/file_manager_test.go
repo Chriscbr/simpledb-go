@@ -16,7 +16,7 @@ func TestFileMgr(t *testing.T) {
 	}
 	defer fm.Close()
 
-	blk := NewBlockId("testfile", 2)
+	blk := NewBlockID("testfile", 2)
 	pos1 := 0
 
 	p1 := NewPage(fm.BlockSize)
