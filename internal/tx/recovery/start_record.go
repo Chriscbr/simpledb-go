@@ -7,6 +7,9 @@ import (
 	"simpledb/internal/tx"
 )
 
+// Check that StartRecord implements LogRecord
+var _ LogRecord = (*StartRecord)(nil)
+
 // StartRecord represents a START log record
 type StartRecord struct {
 	txnum int
@@ -30,7 +33,9 @@ func (r *StartRecord) TxNumber() int {
 }
 
 // Undo does nothing, because a start record contains no undo information.
-func (r *StartRecord) Undo(tx *tx.Transaction) {}
+func (r *StartRecord) Undo(tx *tx.Transaction) error {
+	return nil
+}
 
 // String returns a string representation of the StartRecord.
 func (r *StartRecord) String() string {

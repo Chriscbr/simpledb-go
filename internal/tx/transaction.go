@@ -9,10 +9,14 @@ import (
 // Transaction provides transaction management for clients, ensuring that
 // all transactions are serializable, recoverable, and in general satisfy
 // the ACID properties.
-type Transaction struct{}
+type Transaction struct {
+	buffers *BufferList
+}
 
 func NewTransaction(fm *file.FileMgr, lm *log.LogMgr, bm *buffer.BufferMgr) *Transaction {
-	return &Transaction{}
+	return &Transaction{
+		buffers: NewBufferList(bm),
+	}
 }
 
 func (t *Transaction) Commit() {
@@ -27,12 +31,12 @@ func (t *Transaction) Recover() {
 	// TODO: implement
 }
 
-func (t *Transaction) Pin(blk file.BlockID) {
-	// TODO: implement
+func (t *Transaction) Pin(blk file.BlockID) error {
+	return t.buffers.Pin(blk)
 }
 
 func (t *Transaction) Unpin(blk file.BlockID) {
-	// TODO: implement
+	t.buffers.Unpin(blk)
 }
 
 func (t *Transaction) GetInt(blk file.BlockID, offset int) int {

@@ -24,7 +24,7 @@ type LogRecord interface {
 	// TxNumber returns the transaction ID stored with the log record.
 	TxNumber() int
 	// Undo undoes the operation encoded by this log record, if applicable.
-	Undo(tx *tx.Transaction)
+	Undo(tx *tx.Transaction) error
 }
 
 // CreateLogRecord interprets the bytes returned by the log iterator and creates the appropriate LogRecord
@@ -37,12 +37,12 @@ func CreateLogRecord(bytes []byte) LogRecord {
 		return NewStartRecord(p)
 	case Commit:
 		return NewCommitRecord(p)
-	// case Rollback:
-	// 	return NewRollbackRecord(p)
-	// case SetInt:
-	// 	return NewSetIntRecord(p)
-	// case SetString:
-	// 	return NewSetStringRecord(p)
+	case Rollback:
+		return NewRollbackRecord(p)
+	case SetInt:
+		return NewSetIntRecord(p)
+	case SetString:
+		return NewSetStringRecord(p)
 	default:
 		return nil
 	}

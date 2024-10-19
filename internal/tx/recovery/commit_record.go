@@ -7,6 +7,9 @@ import (
 	"simpledb/internal/tx"
 )
 
+// Check that CommitRecord implements LogRecord
+var _ LogRecord = (*CommitRecord)(nil)
+
 // CommitRecord represents a COMMIT log record
 type CommitRecord struct {
 	txnum int
@@ -30,7 +33,9 @@ func (r *CommitRecord) TxNumber() int {
 }
 
 // Undo does nothing, because a commit record contains no undo information.
-func (r *CommitRecord) Undo(tx *tx.Transaction) {}
+func (r *CommitRecord) Undo(tx *tx.Transaction) error {
+	return nil
+}
 
 // String returns a string representation of the CommitRecord.
 func (r *CommitRecord) String() string {

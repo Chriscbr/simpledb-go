@@ -6,6 +6,9 @@ import (
 	"simpledb/internal/tx"
 )
 
+// Check that CheckpointRecord implements LogRecord
+var _ LogRecord = (*CheckpointRecord)(nil)
+
 // CheckpointRecord represents a CHECKPOINT log record.
 type CheckpointRecord struct{}
 
@@ -27,7 +30,9 @@ func (r *CheckpointRecord) TxNumber() int {
 }
 
 // Undo does nothing, because a checkpoint record contains no undo information.
-func (r *CheckpointRecord) Undo(tx *tx.Transaction) {}
+func (r *CheckpointRecord) Undo(tx *tx.Transaction) error {
+	return nil
+}
 
 // String returns a string representation of the CheckpointRecord.
 func (r *CheckpointRecord) String() string {
