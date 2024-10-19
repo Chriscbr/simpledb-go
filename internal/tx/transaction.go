@@ -111,28 +111,70 @@ func (t *Transaction) Unpin(blk file.BlockID) {
 	t.buffers.Unpin(blk)
 }
 
-// Returns the integer value stored at the specified offset
+// GetInt returns the integer value stored at the specified offset
 // of the specified block.
+// The method first obtains an SLock on the block, then it calls the
+// buffer to retrieve the value.
 func (t *Transaction) GetInt(blk file.BlockID, offset int) int32 {
 	// TODO: t.cm.SLock(blk)
 	b := t.buffers.GetBuffer(blk)
 	return b.Contents.GetInt(offset)
 }
 
-// Returns the string value stored at the specified offset
+// GetString returns the string value stored at the specified offset
 // of the specified block.
+// The method first obtains an SLock on the block, then it calls the
+// buffer to retrieve the value.
 func (t *Transaction) GetString(blk file.BlockID, offset int) string {
 	// TODO: t.cm.SLock(blk)
 	b := t.buffers.GetBuffer(blk)
 	return b.Contents.GetString(offset)
 }
 
-func (t *Transaction) SetInt(blk file.BlockID, offset int, value int32, okToLog bool) {
-	// TODO: implement
+// SetInt stores an integer at the specified offset of the specified block.
+// The method first obtains an XLock on the block.
+// It then reads the current value at that offset, puts it into an
+// update record, and writes that record to the log.
+// Finally, it calls the buffer to store the value,
+// passing in the LSN of the log record and the transaction's id.
+func (t *Transaction) SetInt(blk file.BlockID, offset int, n int32, okToLog bool) error {
+	// TODO: t.cm.XLock(blk)
+	b := t.buffers.GetBuffer(blk)
+	lsn := -1
+	if okToLog {
+		var err error
+		lsn, err = t.rm.SetInt(b, offset, n)
+		if err != nil {
+			return err
+		}
+	}
+	p := b.Contents
+	p.SetInt(offset, n)
+	b.SetModified(t.txnum, lsn)
+	return nil
 }
 
-func (t *Transaction) SetString(blk file.BlockID, offset int, value string, okToLog bool) {
-	// TODO: implement
+// SetString stores a string at the specified offset of the specified block.
+// The method first obtains an XLock on the block.
+// It then reads the current value at that offset, puts it into an
+// update record, and writes that record to the log.
+// Finally, it calls the buffer to store the value,
+// passing in the LSN of the log record and the transaction's id.
+func (t *Transaction) SetString(blk file.BlockID, offset int, val string, okToLog bool) error {
+	// TODO: t.cm.XLock(blk)
+	b := t.buffers.GetBuffer(blk)
+	lsn := -1
+	if okToLog {
+		var err error
+		lsn, err = t.rm.SetString(b, offset, val)
+		if err != nil {
+			return err
+		}
+	}
+	p := b.Contents
+	p.SetString(offset, val)
+	b.SetModified(t.txnum, lsn)
+	return nil
 }
 
 func (t *Transaction) AvailableBufs() int {

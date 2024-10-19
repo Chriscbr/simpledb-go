@@ -21,8 +21,8 @@ const (
 type Transaction interface {
 	Pin(blk file.BlockID) error
 	Unpin(blk file.BlockID)
-	SetInt(blk file.BlockID, offset int, val int32, okToLog bool)
-	SetString(blk file.BlockID, offset int, val string, okToLog bool)
+	SetInt(blk file.BlockID, offset int, n int32, okToLog bool) error
+	SetString(blk file.BlockID, offset int, val string, okToLog bool) error
 }
 
 // LogRecord is an interface implemented by each type of log record.

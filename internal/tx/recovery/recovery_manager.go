@@ -97,7 +97,7 @@ func (rm *RecoveryMgr) Recover() error {
 }
 
 // SetInt writes a setint record to the log and returns its LSN.
-func (rm *RecoveryMgr) SetInt(b *buffer.Buffer, offset int, newval int) (int, error) {
+func (rm *RecoveryMgr) SetInt(b *buffer.Buffer, offset int, newval int32) (int, error) {
 	// newval isn't used because the recovery algorithm is undo-only
 	oldval := b.Contents.GetInt(offset)
 	return WriteSetIntToLog(rm.lm, rm.txnum, b.Blk, offset, int(oldval))

@@ -51,7 +51,12 @@ func (r *SetIntRecord) Undo(tx Transaction) error {
 	if err != nil {
 		return err
 	}
-	tx.SetInt(r.blk, r.offset, int32(r.val), false) // don't log the undo!
+
+	err = tx.SetInt(r.blk, r.offset, int32(r.val), false) // don't log the undo!
+	if err != nil {
+		return err
+	}
+
 	tx.Unpin(r.blk)
 	return nil
 }

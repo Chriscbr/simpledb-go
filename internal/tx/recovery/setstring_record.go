@@ -51,7 +51,12 @@ func (r *SetStringRecord) Undo(tx Transaction) error {
 	if err != nil {
 		return err
 	}
-	tx.SetString(r.blk, r.offset, r.val, false) // don't log the undo!
+
+	err = tx.SetString(r.blk, r.offset, r.val, false) // don't log the undo!
+	if err != nil {
+		return err
+	}
+
 	tx.Unpin(r.blk)
 	return nil
 }
