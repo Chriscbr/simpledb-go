@@ -10,6 +10,8 @@ import (
 	"sync/atomic"
 )
 
+// TODO: fix nextTxNum is shared across test suites
+
 var (
 	nextTxNum atomic.Uint32
 	endOfFile int = -1
@@ -33,10 +35,10 @@ type Transaction struct {
 }
 
 // NewTransaction creates a new transaction instance.
-func NewTransaction(fm *file.FileMgr, lm *log.LogMgr, bm *buffer.BufferMgr) (*Transaction, error) {
+func NewTransaction(fm *file.FileMgr, lm *log.LogMgr, bm *buffer.BufferMgr, lt *concurrency.LockTable) (*Transaction, error) {
 	t := &Transaction{
 		rm:      nil,
-		cm:      concurrency.NewConcurrencyMgr(),
+		cm:      concurrency.NewConcurrencyMgr(lt),
 		bm:      bm,
 		fm:      fm,
 		txnum:   nextTxNumber(),

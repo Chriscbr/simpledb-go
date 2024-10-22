@@ -3,7 +3,6 @@ package tx
 import (
 	"os"
 	"simpledb/internal/file"
-	"simpledb/internal/tx/concurrency"
 	"testing"
 )
 
@@ -27,7 +26,6 @@ func TestRecovery(t *testing.T) {
 	modify(t)
 
 	closePartialDB(db)
-	concurrency.ResetGlobalLockTableForTesting()
 	db = createPartialDB(t, "recoverytest", 400, 8)
 
 	recover(t)
@@ -36,8 +34,8 @@ func TestRecovery(t *testing.T) {
 }
 
 func initialize(t *testing.T) {
-	tx1 := newTx(t, db.fm, db.lm, db.bm)
-	tx2 := newTx(t, db.fm, db.lm, db.bm)
+	tx1 := newTx(t, db.fm, db.lm, db.bm, db.lt)
+	tx2 := newTx(t, db.fm, db.lm, db.bm, db.lt)
 
 	err := tx1.Pin(blk0)
 	if err != nil {
@@ -85,8 +83,8 @@ func initialize(t *testing.T) {
 // modify creates two new transactions, but does not commit them.
 // The first is rolled back, and the second is left uncompleted.
 func modify(t *testing.T) {
-	tx3 := newTx(t, db.fm, db.lm, db.bm)
-	tx4 := newTx(t, db.fm, db.lm, db.bm)
+	tx3 := newTx(t, db.fm, db.lm, db.bm, db.lt)
+	tx4 := newTx(t, db.fm, db.lm, db.bm, db.lt)
 
 	err := tx3.Pin(blk0)
 	if err != nil {
@@ -140,7 +138,7 @@ func modify(t *testing.T) {
 }
 
 func recover(t *testing.T) {
-	tx5 := newTx(t, db.fm, db.lm, db.bm)
+	tx5 := newTx(t, db.fm, db.lm, db.bm, db.lt)
 
 	err := tx5.Recover()
 	if err != nil {

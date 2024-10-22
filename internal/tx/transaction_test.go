@@ -14,7 +14,7 @@ func TestTransaction(t *testing.T) {
 	db = createPartialDB(t, "txtest", 400, 8)
 	defer closePartialDB(db)
 
-	tx1 := newTx(t, db.fm, db.lm, db.bm)
+	tx1 := newTx(t, db.fm, db.lm, db.bm, db.lt)
 	blk := file.NewBlockID("testfile", 1)
 	if err := tx1.Pin(blk); err != nil {
 		t.Fatalf("Failed to pin block: %v", err)
@@ -31,7 +31,7 @@ func TestTransaction(t *testing.T) {
 		t.Fatalf("Failed to commit: %v", err)
 	}
 
-	tx2 := newTx(t, db.fm, db.lm, db.bm)
+	tx2 := newTx(t, db.fm, db.lm, db.bm, db.lt)
 	if err := tx2.Pin(blk); err != nil {
 		t.Fatalf("Failed to pin block: %v", err)
 	}
@@ -61,7 +61,7 @@ func TestTransaction(t *testing.T) {
 		t.Fatalf("Failed to commit: %v", err)
 	}
 
-	tx3 := newTx(t, db.fm, db.lm, db.bm)
+	tx3 := newTx(t, db.fm, db.lm, db.bm, db.lt)
 	if err := tx3.Pin(blk); err != nil {
 		t.Fatalf("Failed to pin block: %v", err)
 	}
@@ -94,7 +94,7 @@ func TestTransaction(t *testing.T) {
 		t.Fatalf("Failed to rollback: %v", err)
 	}
 
-	tx4 := newTx(t, db.fm, db.lm, db.bm)
+	tx4 := newTx(t, db.fm, db.lm, db.bm, db.lt)
 	if err := tx4.Pin(blk); err != nil {
 		t.Fatalf("Failed to pin block: %v", err)
 	}

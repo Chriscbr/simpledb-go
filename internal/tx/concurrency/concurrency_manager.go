@@ -2,19 +2,7 @@ package concurrency
 
 import (
 	"simpledb/internal/file"
-	"sync"
 )
-
-// globalLockTable is a shared lock table for all transactions.
-// All transactions share the same lock table.
-// TODO: pass this object directly to make testing easier
-var globalLockTable = NewLockTable()
-
-func ResetGlobalLockTableForTesting() {
-	globalLockTable.mu = sync.Mutex{}
-	globalLockTable.locks = make(map[file.BlockID]int)
-	globalLockTable.waiters = make(map[file.BlockID]chan struct{})
-}
 
 type LockType int
 
@@ -24,12 +12,15 @@ const (
 )
 
 type ConcurrencyMgr struct {
+	lt    *LockTable
 	locks map[file.BlockID]LockType
 }
 
-// NewConcurrencyMgr creates a new ConcurrencyMgr.
-func NewConcurrencyMgr() *ConcurrencyMgr {
+// NewConcurrencyMgr creates a new ConcurrencyMgr that references the given
+// database-wide lock table.
+func NewConcurrencyMgr(lt *LockTable) *ConcurrencyMgr {
 	return &ConcurrencyMgr{
+		lt:    lt,
 		locks: make(map[file.BlockID]LockType),
 	}
 }
@@ -39,7 +30,7 @@ func NewConcurrencyMgr() *ConcurrencyMgr {
 // if the transaction currently has no locks on the block.
 func (cm *ConcurrencyMgr) SLock(blk file.BlockID) error {
 	if _, ok := cm.locks[blk]; !ok {
-		if err := globalLockTable.SLock(blk); err != nil {
+		if err := cm.lt.SLock(blk); err != nil {
 			return err
 		}
 		cm.locks[blk] = SharedLock
@@ -59,7 +50,7 @@ func (cm *ConcurrencyMgr) XLock(blk file.BlockID) error {
 		if err := cm.SLock(blk); err != nil {
 			return err
 		}
-		if err := globalLockTable.XLock(blk); err != nil {
+		if err := cm.lt.XLock(blk); err != nil {
 			return err
 		}
 		cm.locks[blk] = ExclusiveLock
@@ -70,7 +61,7 @@ func (cm *ConcurrencyMgr) XLock(blk file.BlockID) error {
 // Release releases all locks by asking the lock table to unlock each one.
 func (cm *ConcurrencyMgr) Release() {
 	for blk := range cm.locks {
-		globalLockTable.Unlock(blk)
+		cm.lt.Unlock(blk)
 	}
 	cm.locks = make(map[file.BlockID]LockType)
 }

@@ -5,12 +5,14 @@ import (
 	"simpledb/internal/file"
 	"simpledb/internal/log"
 	"simpledb/internal/tx"
+	"simpledb/internal/tx/concurrency"
 )
 
 type SimpleDB struct {
 	FileMgr   *file.FileMgr
 	LogMgr    *log.LogMgr
 	BufferMgr *buffer.BufferMgr
+	LockTable *concurrency.LockTable
 }
 
 // NewSimpleDB creates a new SimpleDB instance with the given directory name and blocksize.
@@ -31,12 +33,14 @@ func NewSimpleDB(dirname string, blocksize int, numbufs int) (*SimpleDB, error) 
 		return nil, err
 	}
 
-	db := &SimpleDB{fm, lm, bm}
+	lt := concurrency.NewLockTable()
+
+	db := &SimpleDB{fm, lm, bm, lt}
 	return db, nil
 }
 
 func (db *SimpleDB) NewTx() (*tx.Transaction, error) {
-	return tx.NewTransaction(db.FileMgr, db.LogMgr, db.BufferMgr)
+	return tx.NewTransaction(db.FileMgr, db.LogMgr, db.BufferMgr, db.LockTable)
 }
 
 // Close closes the SimpleDB instance
