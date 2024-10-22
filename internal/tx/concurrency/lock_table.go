@@ -11,8 +11,8 @@ const maxWaitTime = 10 * time.Second
 // LockTable provides methods to lock and unlock blocks.
 // If a transaction requests a lock that causes a conflict with an
 // existing lock, then that transaction is placed on a wait list.
-// There is only one wait list for all blocks.
-// When the last block on a block is unlock, then all transactions
+// Internally, a channel is created for each block for goroutines to wait on.
+// When a block is updated, then all transactions waiting on that block
 // are removed from the wait list and rescheduled.
 // If one of those transactions discovers that the lock it is waiting for
 // is still locked, it will place itself back on the wait list.
@@ -113,10 +113,11 @@ func (lt *LockTable) Unlock(blk file.BlockID) {
 		lt.locks[blk] = val - 1
 	} else {
 		delete(lt.locks, blk)
-		if ch, exists := lt.waiters[blk]; exists {
-			close(ch)               // Signal waiting goroutines
-			delete(lt.waiters, blk) // Remove the channel
-		}
+	}
+	// Signal all goroutines waiting for this block (and remove the channel)
+	if ch, exists := lt.waiters[blk]; exists {
+		close(ch)
+		delete(lt.waiters, blk)
 	}
 }
 
