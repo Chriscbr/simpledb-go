@@ -1,8 +1,9 @@
-package tx
+package tx_test
 
 import (
 	"os"
 	"simpledb/internal/file"
+	"simpledb/internal/server"
 	"testing"
 )
 
@@ -11,10 +12,16 @@ func TestTransaction(t *testing.T) {
 		os.RemoveAll("txtest")
 	})
 
-	db = createPartialDB(t, "txtest", 400, 8)
-	defer closePartialDB(db)
+	db, err := server.NewSimpleDB("txtest", 400, 8)
+	if err != nil {
+		t.Fatalf("Failed to create database: %v", err)
+	}
+	defer db.Close()
 
-	tx1 := newTx(t, db.fm, db.lm, db.bm, db.lt)
+	tx1, err := db.NewTx()
+	if err != nil {
+		t.Fatalf("Failed to create transaction: %v", err)
+	}
 	blk := file.NewBlockID("testfile", 1)
 	if err := tx1.Pin(blk); err != nil {
 		t.Fatalf("Failed to pin block: %v", err)
@@ -31,7 +38,10 @@ func TestTransaction(t *testing.T) {
 		t.Fatalf("Failed to commit: %v", err)
 	}
 
-	tx2 := newTx(t, db.fm, db.lm, db.bm, db.lt)
+	tx2, err := db.NewTx()
+	if err != nil {
+		t.Fatalf("Failed to create transaction: %v", err)
+	}
 	if err := tx2.Pin(blk); err != nil {
 		t.Fatalf("Failed to pin block: %v", err)
 	}
@@ -61,7 +71,10 @@ func TestTransaction(t *testing.T) {
 		t.Fatalf("Failed to commit: %v", err)
 	}
 
-	tx3 := newTx(t, db.fm, db.lm, db.bm, db.lt)
+	tx3, err := db.NewTx()
+	if err != nil {
+		t.Fatalf("Failed to create transaction: %v", err)
+	}
 	if err := tx3.Pin(blk); err != nil {
 		t.Fatalf("Failed to pin block: %v", err)
 	}
@@ -94,7 +107,10 @@ func TestTransaction(t *testing.T) {
 		t.Fatalf("Failed to rollback: %v", err)
 	}
 
-	tx4 := newTx(t, db.fm, db.lm, db.bm, db.lt)
+	tx4, err := db.NewTx()
+	if err != nil {
+		t.Fatalf("Failed to create transaction: %v", err)
+	}
 	if err := tx4.Pin(blk); err != nil {
 		t.Fatalf("Failed to pin block: %v", err)
 	}

@@ -1,13 +1,14 @@
-package tx
+package tx_test
 
 import (
 	"os"
 	"simpledb/internal/file"
+	"simpledb/internal/server"
 	"testing"
 )
 
 var (
-	db   *DB
+	db   *server.SimpleDB
 	blk0 file.BlockID
 	blk1 file.BlockID
 )
@@ -17,7 +18,11 @@ func TestRecovery(t *testing.T) {
 		os.RemoveAll("recoverytest")
 	})
 
-	db = createPartialDB(t, "recoverytest", 400, 8)
+	var err error
+	db, err = server.NewSimpleDB("recoverytest", 400, 8)
+	if err != nil {
+		t.Fatalf("Failed to create database: %v", err)
+	}
 
 	blk0 = file.NewBlockID("testfile", 0)
 	blk1 = file.NewBlockID("testfile", 1)
@@ -25,19 +30,28 @@ func TestRecovery(t *testing.T) {
 	initialize(t)
 	modify(t)
 
-	closePartialDB(db)
-	db = createPartialDB(t, "recoverytest", 400, 8)
+	db.Close()
+	db, err = server.NewSimpleDB("recoverytest", 400, 8)
+	if err != nil {
+		t.Fatalf("Failed to create database: %v", err)
+	}
 
 	recover(t)
 
-	closePartialDB(db)
+	db.Close()
 }
 
 func initialize(t *testing.T) {
-	tx1 := newTx(t, db.fm, db.lm, db.bm, db.lt)
-	tx2 := newTx(t, db.fm, db.lm, db.bm, db.lt)
+	tx1, err := db.NewTx()
+	if err != nil {
+		t.Fatalf("Failed to create transaction: %v", err)
+	}
+	tx2, err := db.NewTx()
+	if err != nil {
+		t.Fatalf("Failed to create transaction: %v", err)
+	}
 
-	err := tx1.Pin(blk0)
+	err = tx1.Pin(blk0)
 	if err != nil {
 		t.Fatalf("Failed to pin block: %v", err)
 	}
@@ -83,10 +97,16 @@ func initialize(t *testing.T) {
 // modify creates two new transactions, but does not commit them.
 // The first is rolled back, and the second is left uncompleted.
 func modify(t *testing.T) {
-	tx3 := newTx(t, db.fm, db.lm, db.bm, db.lt)
-	tx4 := newTx(t, db.fm, db.lm, db.bm, db.lt)
+	tx3, err := db.NewTx()
+	if err != nil {
+		t.Fatalf("Failed to create transaction: %v", err)
+	}
+	tx4, err := db.NewTx()
+	if err != nil {
+		t.Fatalf("Failed to create transaction: %v", err)
+	}
 
-	err := tx3.Pin(blk0)
+	err = tx3.Pin(blk0)
 	if err != nil {
 		t.Fatalf("Failed to pin block: %v", err)
 	}
@@ -117,11 +137,11 @@ func modify(t *testing.T) {
 		t.Fatalf("Failed to set string: %v", err)
 	}
 
-	err = db.bm.FlushAll(3)
+	err = db.BufferMgr.FlushAll(3)
 	if err != nil {
 		t.Fatalf("Failed to flush buffers: %v", err)
 	}
-	err = db.bm.FlushAll(4)
+	err = db.BufferMgr.FlushAll(4)
 	if err != nil {
 		t.Fatalf("Failed to flush buffers: %v", err)
 	}
@@ -138,9 +158,12 @@ func modify(t *testing.T) {
 }
 
 func recover(t *testing.T) {
-	tx5 := newTx(t, db.fm, db.lm, db.bm, db.lt)
+	tx5, err := db.NewTx()
+	if err != nil {
+		t.Fatalf("Failed to create transaction: %v", err)
+	}
 
-	err := tx5.Recover()
+	err = tx5.Recover()
 	if err != nil {
 		t.Fatalf("Failed to recover transaction: %v", err)
 	}
@@ -150,14 +173,14 @@ func recover(t *testing.T) {
 func printValues(t *testing.T, msg string) {
 	t.Log(msg)
 
-	p0 := file.NewPage(db.fm.BlockSize)
-	p1 := file.NewPage(db.fm.BlockSize)
+	p0 := file.NewPage(db.FileMgr.BlockSize)
+	p1 := file.NewPage(db.FileMgr.BlockSize)
 
-	err := db.fm.Read(blk0, p0)
+	err := db.FileMgr.Read(blk0, p0)
 	if err != nil {
 		t.Fatalf("Failed to read block: %v", err)
 	}
-	err = db.fm.Read(blk1, p1)
+	err = db.FileMgr.Read(blk1, p1)
 	if err != nil {
 		t.Fatalf("Failed to read block: %v", err)
 	}
