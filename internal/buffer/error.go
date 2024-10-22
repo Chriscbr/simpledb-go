@@ -9,7 +9,7 @@ func (e *BufferAbortError) Error() string {
 	return "no available buffers"
 }
 
-// NewBufferAbortError creates a new BufferAbortError with an optional message.
+// NewBufferAbortError creates a new BufferAbortError.
 func NewBufferAbortError() *BufferAbortError {
 	return &BufferAbortError{}
 }
