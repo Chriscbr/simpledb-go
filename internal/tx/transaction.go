@@ -188,22 +188,33 @@ func (t *Transaction) SetString(blk file.BlockID, offset int, val string, okToLo
 	return nil
 }
 
-func (t *Transaction) AvailableBufs() int {
-	// TODO: implement
-	return 0
+// Size returns the number of blocks in the specified file.
+// It first obtains an SLock on the "end of the file",
+// before asking the file manager to return the file size.
+func (t *Transaction) Size(filename string) (int, error) {
+	dummyblk := file.NewBlockID(filename, endOfFile)
+	if err := t.cm.SLock(dummyblk); err != nil {
+		return 0, err
+	}
+	return t.fm.Length(filename)
 }
 
-func (t *Transaction) Size(filename string) int {
-	// TODO: implement
-	return 0
-}
-
-func (t *Transaction) Append(filename string) file.BlockID {
-	// TODO: implement
-	return file.BlockID{}
+// Append appends a new block to the end of the specified file,
+// and returns a reference to it.
+// This method first obtains an XLock on the "end of the file",
+// before performing the append.
+func (t *Transaction) Append(filename string) (file.BlockID, error) {
+	dummyblk := file.NewBlockID(filename, endOfFile)
+	if err := t.cm.XLock(dummyblk); err != nil {
+		return file.BlockID{}, err
+	}
+	return t.fm.Append(filename)
 }
 
 func (t *Transaction) BlockSize() int {
-	// TODO: implement
-	return 0
+	return t.fm.BlockSize
+}
+
+func (t *Transaction) AvailableBufs() int {
+	return t.bm.Available()
 }
