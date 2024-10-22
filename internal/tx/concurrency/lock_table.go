@@ -59,7 +59,7 @@ func (lt *LockTable) SLock(blk file.BlockID) error {
 
 		lt.mu.Lock()
 	}
-	val := lt.locks[blk]
+	val := lt.locks[blk] // will not be negative
 	lt.locks[blk] = val + 1
 	return nil
 }
@@ -75,7 +75,11 @@ func (lt *LockTable) XLock(blk file.BlockID) error {
 	defer lt.mu.Unlock()
 
 	start := time.Now()
-	for lt.locks[blk] != 0 {
+
+	// We assume the concurrency manager will obtain an SLock
+	// before obtaining an XLock, so we only need to wait if
+	// another transaction is also holding this block.
+	for lt.locks[blk] > 1 {
 		ch := lt.getOrCreateWaitChannel(blk)
 		lt.mu.Unlock()
 
