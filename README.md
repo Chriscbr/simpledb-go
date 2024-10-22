@@ -4,8 +4,16 @@
 go run cmd/cli/main.go
 ```
 
-## Test
+## Testing
+
+Run all tests:
 
 ```
-go test ./...
+go test ./... -v
+```
+
+Run an individual test:
+
+```
+go test simpledb/internal/tx -run TestRecovery -v
 ```

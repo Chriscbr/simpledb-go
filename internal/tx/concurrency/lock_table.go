@@ -38,7 +38,6 @@ func NewLockTable() *LockTable {
 // then the method will return an error.
 func (lt *LockTable) SLock(blk file.BlockID) error {
 	lt.mu.Lock()
-	defer lt.mu.Unlock()
 
 	start := time.Now()
 	for lt.locks[blk] == -1 {
@@ -61,6 +60,7 @@ func (lt *LockTable) SLock(blk file.BlockID) error {
 	}
 	val := lt.locks[blk] // will not be negative
 	lt.locks[blk] = val + 1
+	lt.mu.Unlock()
 	return nil
 }
 
@@ -72,7 +72,6 @@ func (lt *LockTable) SLock(blk file.BlockID) error {
 // will return an error.
 func (lt *LockTable) XLock(blk file.BlockID) error {
 	lt.mu.Lock()
-	defer lt.mu.Unlock()
 
 	start := time.Now()
 
@@ -98,6 +97,7 @@ func (lt *LockTable) XLock(blk file.BlockID) error {
 		lt.mu.Lock()
 	}
 	lt.locks[blk] = -1
+	lt.mu.Unlock()
 	return nil
 }
 

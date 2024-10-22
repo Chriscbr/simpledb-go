@@ -1,10 +1,20 @@
 package concurrency
 
-import "simpledb/internal/file"
+import (
+	"simpledb/internal/file"
+	"sync"
+)
 
 // globalLockTable is a shared lock table for all transactions.
 // All transactions share the same lock table.
+// TODO: pass this object directly to make testing easier
 var globalLockTable = NewLockTable()
+
+func ResetGlobalLockTableForTesting() {
+	globalLockTable.mu = sync.Mutex{}
+	globalLockTable.locks = make(map[file.BlockID]int)
+	globalLockTable.waiters = make(map[file.BlockID]chan struct{})
+}
 
 type LockType int
 
@@ -13,13 +23,13 @@ const (
 	ExclusiveLock LockType = 2
 )
 
-type ConcurrencyManager struct {
+type ConcurrencyMgr struct {
 	locks map[file.BlockID]LockType
 }
 
-// NewConcurrencyManager creates a new ConcurrencyManager.
-func NewConcurrencyManager() *ConcurrencyManager {
-	return &ConcurrencyManager{
+// NewConcurrencyMgr creates a new ConcurrencyMgr.
+func NewConcurrencyMgr() *ConcurrencyMgr {
+	return &ConcurrencyMgr{
 		locks: make(map[file.BlockID]LockType),
 	}
 }
@@ -27,7 +37,7 @@ func NewConcurrencyManager() *ConcurrencyManager {
 // SLock obtains a shared lock on the specified block.
 // The method will ask the lock table for an SLock
 // if the transaction currently has no locks on the block.
-func (cm *ConcurrencyManager) SLock(blk file.BlockID) error {
+func (cm *ConcurrencyMgr) SLock(blk file.BlockID) error {
 	if _, ok := cm.locks[blk]; !ok {
 		if err := globalLockTable.SLock(blk); err != nil {
 			return err
@@ -43,7 +53,7 @@ func (cm *ConcurrencyManager) SLock(blk file.BlockID) error {
 // upgrade it to an XLock.
 // This could result in deadlock if two transactions both try
 // upgrading from an SLock to an XLock for the same block.
-func (cm *ConcurrencyManager) XLock(blk file.BlockID) error {
+func (cm *ConcurrencyMgr) XLock(blk file.BlockID) error {
 	lock := cm.locks[blk]
 	if lock != ExclusiveLock {
 		if err := cm.SLock(blk); err != nil {
@@ -58,7 +68,7 @@ func (cm *ConcurrencyManager) XLock(blk file.BlockID) error {
 }
 
 // Release releases all locks by asking the lock table to unlock each one.
-func (cm *ConcurrencyManager) Release() {
+func (cm *ConcurrencyMgr) Release() {
 	for blk := range cm.locks {
 		globalLockTable.Unlock(blk)
 	}

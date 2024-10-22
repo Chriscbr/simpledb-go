@@ -5,6 +5,7 @@ import (
 	"simpledb/internal/buffer"
 	"simpledb/internal/file"
 	"simpledb/internal/log"
+	"simpledb/internal/tx/concurrency"
 	"simpledb/internal/tx/recovery"
 	"sync/atomic"
 )
@@ -24,6 +25,7 @@ func nextTxNumber() int {
 // the ACID properties.
 type Transaction struct {
 	rm      *recovery.RecoveryMgr
+	cm      *concurrency.ConcurrencyMgr
 	bm      *buffer.BufferMgr
 	fm      *file.FileMgr
 	txnum   int
@@ -34,6 +36,7 @@ type Transaction struct {
 func NewTransaction(fm *file.FileMgr, lm *log.LogMgr, bm *buffer.BufferMgr) (*Transaction, error) {
 	t := &Transaction{
 		rm:      nil,
+		cm:      concurrency.NewConcurrencyMgr(),
 		bm:      bm,
 		fm:      fm,
 		txnum:   nextTxNumber(),
@@ -59,7 +62,7 @@ func (t *Transaction) Commit() error {
 	}
 
 	fmt.Printf("transaction %d committed\n", t.txnum)
-	// TODO: t.cm.Release()
+	t.cm.Release()
 	t.buffers.UnpinAll()
 	return nil
 }
@@ -75,7 +78,7 @@ func (t *Transaction) Rollback() error {
 	}
 
 	fmt.Printf("transaction %d rolled back\n", t.txnum)
-	// TODO: t.cm.Release()
+	t.cm.Release()
 	t.buffers.UnpinAll()
 	return nil
 }
@@ -115,20 +118,24 @@ func (t *Transaction) Unpin(blk file.BlockID) {
 // of the specified block.
 // The method first obtains an SLock on the block, then it calls the
 // buffer to retrieve the value.
-func (t *Transaction) GetInt(blk file.BlockID, offset int) int32 {
-	// TODO: t.cm.SLock(blk)
+func (t *Transaction) GetInt(blk file.BlockID, offset int) (int32, error) {
+	if err := t.cm.SLock(blk); err != nil {
+		return 0, err
+	}
 	b := t.buffers.GetBuffer(blk)
-	return b.Contents.GetInt(offset)
+	return b.Contents.GetInt(offset), nil
 }
 
 // GetString returns the string value stored at the specified offset
 // of the specified block.
 // The method first obtains an SLock on the block, then it calls the
 // buffer to retrieve the value.
-func (t *Transaction) GetString(blk file.BlockID, offset int) string {
-	// TODO: t.cm.SLock(blk)
+func (t *Transaction) GetString(blk file.BlockID, offset int) (string, error) {
+	if err := t.cm.SLock(blk); err != nil {
+		return "", err
+	}
 	b := t.buffers.GetBuffer(blk)
-	return b.Contents.GetString(offset)
+	return b.Contents.GetString(offset), nil
 }
 
 // SetInt stores an integer at the specified offset of the specified block.
@@ -138,7 +145,9 @@ func (t *Transaction) GetString(blk file.BlockID, offset int) string {
 // Finally, it calls the buffer to store the value,
 // passing in the LSN of the log record and the transaction's id.
 func (t *Transaction) SetInt(blk file.BlockID, offset int, n int32, okToLog bool) error {
-	// TODO: t.cm.XLock(blk)
+	if err := t.cm.XLock(blk); err != nil {
+		return err
+	}
 	b := t.buffers.GetBuffer(blk)
 	lsn := -1
 	if okToLog {
@@ -161,7 +170,9 @@ func (t *Transaction) SetInt(blk file.BlockID, offset int, n int32, okToLog bool
 // Finally, it calls the buffer to store the value,
 // passing in the LSN of the log record and the transaction's id.
 func (t *Transaction) SetString(blk file.BlockID, offset int, val string, okToLog bool) error {
-	// TODO: t.cm.XLock(blk)
+	if err := t.cm.XLock(blk); err != nil {
+		return err
+	}
 	b := t.buffers.GetBuffer(blk)
 	lsn := -1
 	if okToLog {

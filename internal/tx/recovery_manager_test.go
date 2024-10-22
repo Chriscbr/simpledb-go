@@ -5,6 +5,7 @@ import (
 	"simpledb/internal/buffer"
 	"simpledb/internal/file"
 	"simpledb/internal/log"
+	"simpledb/internal/tx/concurrency"
 	"testing"
 )
 
@@ -28,6 +29,7 @@ func TestRecovery(t *testing.T) {
 	modify(t)
 
 	closePartialDB(db)
+	concurrency.ResetGlobalLockTableForTesting()
 	db = createPartialDB(t, "recoverytest", 400, 8)
 
 	recover(t)
@@ -140,9 +142,9 @@ func modify(t *testing.T) {
 }
 
 func recover(t *testing.T) {
-	tx := newTx(t)
+	tx5 := newTx(t)
 
-	err := tx.Recover()
+	err := tx5.Recover()
 	if err != nil {
 		t.Fatalf("Failed to recover transaction: %v", err)
 	}
