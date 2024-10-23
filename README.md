@@ -1,5 +1,5 @@
 > [!WARNING]
-> This implementation is still a work in progress!
+> This implementation is incomplete.
 
 A Go port of the Java-based SimpleDB project from the book [Database Design and Implementation (2020)](https://link.springer.com/book/10.1007/978-3-030-33836-7) by Edward Sciore.
 
