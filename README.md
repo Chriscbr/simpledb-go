@@ -1,3 +1,24 @@
+> [!WARNING]
+> This implementation is still a work in progress!
+
+A Go port of the Java-based SimpleDB project from the book [Database Design and Implementation (2020)](https://link.springer.com/book/10.1007/978-3-030-33836-7) by Edward Sciore.
+
+Implementation progress by chapter:
+
+- [x] Ch 3. Disk and File Management
+- [x] Ch 4. Memory Management
+- [x] Ch 5. Transaction Management
+- [ ] Ch 6. Record Management
+- [ ] Ch 7. Metadata Management
+- [ ] Ch 8. Query Processing
+- [ ] Ch 9. Parsing
+- [ ] Ch 10. Planning
+- [ ] Ch 11. JDBC Interfaces
+- [ ] Ch 12. Indexing
+- [ ] Ch 13. Materialization and Sorting
+- [ ] Ch 14. Effective Buffer Utilization
+- [ ] Ch 15. Query Optimization
+
 ## Usage
 
 ```
