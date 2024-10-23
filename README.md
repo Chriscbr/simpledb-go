@@ -38,3 +38,8 @@ Run an individual test:
 ```
 go test simpledb/internal/tx -run TestRecovery -v
 ```
+
+## References
+
+- [SimpleDB homepage](https://cs.bc.edu/~sciore/simpledb/) - hosts the original Java implementation
+- [evanxg852000/simpledb-go](https://github.com/evanxg852000/simpledb-go) - an alternative Go implementation
