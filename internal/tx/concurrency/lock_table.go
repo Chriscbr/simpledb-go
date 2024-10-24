@@ -77,7 +77,7 @@ func (lt *LockTable) XLock(blk file.BlockID) error {
 
 	// We assume the concurrency manager will obtain an SLock
 	// before obtaining an XLock, so we only need to wait if
-	// another transaction is also holding this block.
+	// another transaction is also holding an SLock.
 	for lt.locks[blk] > 1 {
 		ch := lt.getOrCreateWaitChannel(blk)
 		lt.mu.Unlock()
