@@ -1,6 +1,9 @@
 package record
 
-import "errors"
+import (
+	"errors"
+	"simpledb/internal/file"
+)
 
 type Type int
 
@@ -36,6 +39,7 @@ type FieldInfo struct {
 }
 
 var ErrFieldNotFound = errors.New("schema does not have field with specified name")
+var ErrFieldUnknownType = errors.New("schema field has an unknown type")
 
 // NewSchema creates a new Schema instance.
 func NewSchema() *Schema {
@@ -111,4 +115,22 @@ func (s *Schema) Length(name string) (int, error) {
 		return 0, ErrFieldNotFound
 	}
 	return info.length, nil
+}
+
+// LengthInBytes returns the number of bytes needed to represent
+// the specified field.
+// Returns ErrFieldNotfound if the field doesn't exist.
+func (s *Schema) LengthInBytes(name string) (int, error) {
+	info, ok := s.info[name]
+	if !ok {
+		return 0, ErrFieldNotFound
+	}
+	switch info.typ {
+	case Integer:
+		return 4, nil
+	case String:
+		return file.MaxLength(info.length), nil
+	default:
+		return 0, ErrFieldUnknownType
+	}
 }
