@@ -9,12 +9,12 @@ import (
 type LogRecordType = int
 
 const (
-	Checkpoint LogRecordType = 0
-	Start      LogRecordType = 1
-	Commit     LogRecordType = 2
-	Rollback   LogRecordType = 3
-	SetInt     LogRecordType = 4
-	SetString  LogRecordType = 5
+	Checkpoint LogRecordType = iota
+	Start
+	Commit
+	Rollback
+	SetInt
+	SetString
 )
 
 // Transaction is an interface used to decouple the recovery package from the tx package.
