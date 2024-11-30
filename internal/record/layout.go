@@ -1,7 +1,9 @@
 package record
 
 // Layout describes the structure of a record.
+// It takes a schema and determines the physical offset of each field within the record.
 // It contains the name, type, length, and offset of each field of the table.
+// The slot size is the size of a record slot in bytes.
 type Layout struct {
 	Schema   *Schema
 	offsets  map[string]int
@@ -36,7 +38,7 @@ func NewLayoutFromMetadata(schema *Schema, offsets map[string]int, slotsize int)
 	return &Layout{schema, offsets, slotsize}
 }
 
-// Offset returns the offset of a specified field within a record.
+// Offset returns the byte offset of a specified field within a record.
 // Returns ErrFieldNotFound if the field doesn't exist.
 func (l *Layout) Offset(name string) (int, error) {
 	offset, ok := l.offsets[name]

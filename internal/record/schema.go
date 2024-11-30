@@ -33,6 +33,7 @@ type Schema struct {
 }
 
 // FieldInfo contains the type and length information for a field.
+// The length is only used for string (varchar) fields.
 type FieldInfo struct {
 	typ    Type
 	length int
