@@ -193,6 +193,7 @@ func (t *Transaction) SetString(blk file.BlockID, offset int, val string, okToLo
 // Size returns the number of blocks in the specified file.
 // It first obtains an SLock on the "end of the file",
 // before asking the file manager to return the file size.
+// It returns an error if a lock could not be obtained.
 func (t *Transaction) Size(filename string) (int, error) {
 	dummyblk := file.NewBlockID(filename, endOfFile)
 	if err := t.cm.SLock(dummyblk); err != nil {
@@ -205,6 +206,7 @@ func (t *Transaction) Size(filename string) (int, error) {
 // and returns a reference to it.
 // This method first obtains an XLock on the "end of the file",
 // before performing the append.
+// It returns an error if a lock could not be obtained.
 func (t *Transaction) Append(filename string) (file.BlockID, error) {
 	dummyblk := file.NewBlockID(filename, endOfFile)
 	if err := t.cm.XLock(dummyblk); err != nil {

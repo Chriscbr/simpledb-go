@@ -5,11 +5,11 @@ import (
 	"simpledb/internal/tx"
 )
 
-type RecordPageFlag int
+type SlotFlag int
 
 const (
-	RecordPageEmpty RecordPageFlag = iota
-	RecordPageUsed
+	SlotEmpty SlotFlag = iota
+	SlotUsed
 )
 
 // RecordPage stores records within a block.
@@ -75,7 +75,7 @@ func (rp *RecordPage) SetString(slot int, fldname string, val string) error {
 
 // Delete marks a slot as unused.
 func (rp *RecordPage) Delete(slot int) error {
-	return rp.setFlag(slot, RecordPageEmpty)
+	return rp.setFlag(slot, SlotEmpty)
 }
 
 // Format uses the table layout to format a new block of records.
@@ -83,7 +83,7 @@ func (rp *RecordPage) Format() error {
 	slot := 0
 	for rp.isValidSlot(slot) {
 		// Values are not logged because the old values are meaningless.
-		rp.tx.SetInt(rp.Blk, rp.offset(slot), int32(RecordPageEmpty), false)
+		rp.tx.SetInt(rp.Blk, rp.offset(slot), int32(SlotEmpty), false)
 		sch := rp.layout.Schema
 		for _, fldname := range sch.Fields {
 			base := rp.offset(slot)
@@ -114,16 +114,16 @@ func (rp *RecordPage) Format() error {
 // NextAfter returns the slot number of the next used slot after the specified slot.
 // Returns -1 if no such slot exists.
 func (rp *RecordPage) NextAfter(slot int) int {
-	return rp.searchAfter(slot, RecordPageUsed)
+	return rp.searchAfter(slot, SlotUsed)
 }
 
 // InsertAfter finds the first unused slot after the specified slot,
 // and marks it as used.
 // Returns -1 if no slot is available.
 func (rp *RecordPage) InsertAfter(slot int) int {
-	slot = rp.searchAfter(slot, RecordPageEmpty)
+	slot = rp.searchAfter(slot, SlotEmpty)
 	if slot >= 0 {
-		err := rp.setFlag(slot, RecordPageUsed)
+		err := rp.setFlag(slot, SlotUsed)
 		if err != nil {
 			return -1
 		}
@@ -131,15 +131,15 @@ func (rp *RecordPage) InsertAfter(slot int) int {
 	return slot
 }
 
-// setFlag sets a record's empty/inuse flag.
-func (rp *RecordPage) setFlag(slot int, flag RecordPageFlag) error {
+// setFlag sets a record slot's empty/inuse flag.
+func (rp *RecordPage) setFlag(slot int, flag SlotFlag) error {
 	return rp.tx.SetInt(rp.Blk, rp.offset(slot), int32(flag), true)
 }
 
 // searchAfter returns the slot number of the slot after the specified slot
 // that has the specified flag.
 // Returns -1 if no such slot exists.
-func (rp *RecordPage) searchAfter(slot int, flag RecordPageFlag) int {
+func (rp *RecordPage) searchAfter(slot int, flag SlotFlag) int {
 	slot++
 	for rp.isValidSlot(slot) {
 		if val, err := rp.tx.GetInt(rp.Blk, rp.offset(slot)); err == nil && val == int32(flag) {
