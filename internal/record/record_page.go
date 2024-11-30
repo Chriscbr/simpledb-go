@@ -30,46 +30,26 @@ func NewRecordPage(tx *tx.Transaction, blk file.BlockID, layout *Layout) *Record
 // GetInt returns the integer value stored for the specified field of a
 // specified slot.
 func (rp *RecordPage) GetInt(slot int, fldname string) (int32, error) {
-	base := rp.offset(slot)
-	offset, err := rp.layout.Offset(fldname)
-	if err != nil {
-		return 0, err
-	}
-	fldpos := base + offset
+	fldpos := rp.offset(slot) + rp.layout.Offset(fldname)
 	return rp.tx.GetInt(rp.Blk, fldpos)
 }
 
 // GetString returns the string value stored for the specified field of a
 // specified slot.
 func (rp *RecordPage) GetString(slot int, fldname string) (string, error) {
-	base := rp.offset(slot)
-	offset, err := rp.layout.Offset(fldname)
-	if err != nil {
-		return "", err
-	}
-	fldpos := base + offset
+	fldpos := rp.offset(slot) + rp.layout.Offset(fldname)
 	return rp.tx.GetString(rp.Blk, fldpos)
 }
 
 // SetInt stores an integer at the specified field of a specified slot.
 func (rp *RecordPage) SetInt(slot int, fldname string, val int32) error {
-	base := rp.offset(slot)
-	offset, err := rp.layout.Offset(fldname)
-	if err != nil {
-		return err
-	}
-	fldpos := base + offset
+	fldpos := rp.offset(slot) + rp.layout.Offset(fldname)
 	return rp.tx.SetInt(rp.Blk, fldpos, val, true)
 }
 
 // SetString stores a string at the specified field of a specified slot.
 func (rp *RecordPage) SetString(slot int, fldname string, val string) error {
-	base := rp.offset(slot)
-	offset, err := rp.layout.Offset(fldname)
-	if err != nil {
-		return err
-	}
-	fldpos := base + offset
+	fldpos := rp.offset(slot) + rp.layout.Offset(fldname)
 	return rp.tx.SetString(rp.Blk, fldpos, val, true)
 }
 
@@ -86,16 +66,9 @@ func (rp *RecordPage) Format() error {
 		rp.tx.SetInt(rp.Blk, rp.offset(slot), int32(SlotEmpty), false)
 		sch := rp.layout.Schema
 		for _, fldname := range sch.Fields {
-			base := rp.offset(slot)
-			offset, err := rp.layout.Offset(fldname)
-			if err != nil {
-				return err
-			}
-			fldpos := base + offset
-			typ, err := sch.Type(fldname)
-			if err != nil {
-				return err
-			}
+			fldpos := rp.offset(slot) + rp.layout.Offset(fldname)
+			typ := sch.Type(fldname)
+			var err error
 			switch typ {
 			case Integer:
 				err = rp.tx.SetInt(rp.Blk, fldpos, 0, false)

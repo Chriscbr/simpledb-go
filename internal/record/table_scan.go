@@ -109,10 +109,7 @@ func (ts *TableScan) GetString(fldname string) (string, error) {
 
 // GetVal returns the value of the specified field from the current record.
 func (ts *TableScan) GetVal(fldname string) (Constant, error) {
-	typ, err := ts.layout.Schema.Type(fldname)
-	if err != nil {
-		return Constant{}, err
-	}
+	typ := ts.layout.Schema.Type(fldname)
 	switch typ {
 	case Integer:
 		val, err := ts.rp.GetInt(ts.currentslot, fldname)
@@ -155,10 +152,7 @@ func (ts *TableScan) SetString(fldname string, val string) error {
 
 // SetVal sets the value of the specified field in the current record.
 func (ts *TableScan) SetVal(fldname string, val Constant) error {
-	typ, err := ts.layout.Schema.Type(fldname)
-	if err != nil {
-		return err
-	}
+	typ := ts.layout.Schema.Type(fldname)
 	switch typ {
 	case Integer:
 		return ts.SetInt(fldname, val.AsInt())

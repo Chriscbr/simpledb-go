@@ -28,19 +28,13 @@ func TestRecord(t *testing.T) {
 	sch := record.NewSchema()
 	sch.AddIntField("A")
 	sch.AddStringField("B", 9)
-	layout, err := record.NewLayout(sch)
-	if err != nil {
-		t.Fatalf("Failed to create layout: %v", err)
-	}
+	layout := record.NewLayout(sch)
 	expectedOffsets := map[string]int{
 		"A": 4,
 		"B": 8,
 	}
 	for _, fldname := range layout.Schema.Fields {
-		offset, err := layout.Offset(fldname)
-		if err != nil {
-			t.Fatal(err)
-		}
+		offset := layout.Offset(fldname)
 		expected := expectedOffsets[fldname]
 		if offset != expected {
 			t.Errorf("Field %s: expected offset %d, got offset %d",

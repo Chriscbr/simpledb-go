@@ -98,40 +98,40 @@ func (s *Schema) HasField(name string) bool {
 }
 
 // Type returns the type of the specified field.
-// Returns ErrFieldNotFound if the field doesn't exist.
-func (s *Schema) Type(name string) (Type, error) {
+// It panics if the field doesn't exist.
+func (s *Schema) Type(name string) Type {
 	info, ok := s.info[name]
 	if !ok {
-		return Type(0), ErrFieldNotFound
+		panic(ErrFieldNotFound)
 	}
-	return info.typ, nil
+	return info.typ
 }
 
 // Length returns the conceptual length of the specified field.
 // Returns ErrFieldNotFound if the field doesn't exist.
 // If the field is not a string field, the length is undefined.
-func (s *Schema) Length(name string) (int, error) {
+func (s *Schema) Length(name string) int {
 	info, ok := s.info[name]
 	if !ok {
-		return 0, ErrFieldNotFound
+		panic(ErrFieldNotFound)
 	}
-	return info.length, nil
+	return info.length
 }
 
 // LengthInBytes returns the number of bytes needed to represent
 // the specified field.
-// Returns ErrFieldNotfound if the field doesn't exist.
-func (s *Schema) LengthInBytes(name string) (int, error) {
+// It panics if the field doesn't exist or has an unknown type.
+func (s *Schema) LengthInBytes(name string) int {
 	info, ok := s.info[name]
 	if !ok {
-		return 0, ErrFieldNotFound
+		panic(ErrFieldNotFound)
 	}
 	switch info.typ {
 	case Integer:
-		return 4, nil
+		return 4
 	case String:
-		return file.MaxLength(info.length), nil
+		return file.MaxLength(info.length)
 	default:
-		return 0, ErrFieldUnknownType
+		panic(ErrFieldUnknownType)
 	}
 }

@@ -9,10 +9,7 @@ func TestLayout(t *testing.T) {
 	sch := record.NewSchema()
 	sch.AddIntField("A")
 	sch.AddStringField("B", 9)
-	layout, err := record.NewLayout(sch)
-	if err != nil {
-		t.Fatal(err)
-	}
+	layout := record.NewLayout(sch)
 
 	expectedOffsets := map[string]int{
 		"A": 4,
@@ -20,10 +17,7 @@ func TestLayout(t *testing.T) {
 	}
 
 	for _, fieldName := range layout.Schema.Fields {
-		offset, err := layout.Offset(fieldName)
-		if err != nil {
-			t.Fatal(err)
-		}
+		offset := layout.Offset(fieldName)
 		expected := expectedOffsets[fieldName]
 		if offset != expected {
 			t.Errorf("Field %s: expected offset %d, got offset %d",
