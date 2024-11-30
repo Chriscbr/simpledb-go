@@ -21,10 +21,12 @@ type RecordPage struct {
 	layout *Layout
 }
 
-func NewRecordPage(tx *tx.Transaction, blk file.BlockID, layout *Layout) *RecordPage {
+func NewRecordPage(tx *tx.Transaction, blk file.BlockID, layout *Layout) (*RecordPage, error) {
 	rp := &RecordPage{tx, blk, layout}
-	tx.Pin(blk)
-	return rp
+	if err := tx.Pin(blk); err != nil {
+		return nil, err
+	}
+	return rp, nil
 }
 
 // GetInt returns the integer value stored for the specified field of a
@@ -63,7 +65,9 @@ func (rp *RecordPage) Format() error {
 	slot := 0
 	for rp.isValidSlot(slot) {
 		// Values are not logged because the old values are meaningless.
-		rp.tx.SetInt(rp.Blk, rp.offset(slot), int32(SlotEmpty), false)
+		if err := rp.tx.SetInt(rp.Blk, rp.offset(slot), int32(SlotEmpty), false); err != nil {
+			return err
+		}
 		sch := rp.layout.Schema
 		for _, fldname := range sch.Fields {
 			fldpos := rp.offset(slot) + rp.layout.Offset(fldname)

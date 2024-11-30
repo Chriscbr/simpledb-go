@@ -11,7 +11,7 @@ import (
 type Scan interface {
 	// BeforeFirst positions the scan before the first record.
 	// A subsequent call to Next() will return the first record.
-	BeforeFirst()
+	BeforeFirst() error
 	// Next moves the scan to the next record.
 	// Returns false if there is no next record.
 	Next() bool
@@ -43,7 +43,7 @@ type UpdateScan interface {
 	// GetRid returns the RID of the current record.
 	GetRid() RID
 	// MoveToRid positions the scan so that the current record has the specified RID.
-	MoveToRid(rid RID)
+	MoveToRid(rid RID) error
 }
 
 // Check that TableScan implements Scan, UpdateScan
@@ -69,16 +69,20 @@ func NewTableScan(tx *tx.Transaction, tblname string, layout *Layout) (*TableSca
 		return nil, err
 	}
 	if size == 0 {
-		ts.moveToNewBlock()
+		if err := ts.moveToNewBlock(); err != nil {
+			return nil, err
+		}
 	} else {
-		ts.moveToBlock(0)
+		if err := ts.moveToBlock(0); err != nil {
+			return nil, err
+		}
 	}
 	return ts, nil
 }
 
 // BeforeFirst moves the table scan before the first record.
-func (ts *TableScan) BeforeFirst() {
-	ts.moveToBlock(0)
+func (ts *TableScan) BeforeFirst() error {
+	return ts.moveToBlock(0)
 }
 
 // Next moves the table scan to the next record, and returns true if there are
@@ -91,7 +95,9 @@ func (ts *TableScan) Next() bool {
 		if ok := ts.atLastBlock(); ok {
 			return false
 		}
-		ts.moveToBlock(ts.rp.Blk.Blknum + 1)
+		if err := ts.moveToBlock(ts.rp.Blk.Blknum + 1); err != nil {
+			return false
+		}
 		ts.currentslot = ts.rp.NextAfter(ts.currentslot)
 	}
 	return true
@@ -172,7 +178,9 @@ func (ts *TableScan) Insert() error {
 				return err
 			}
 		} else {
-			ts.moveToBlock(ts.rp.Blk.Blknum + 1)
+			if err := ts.moveToBlock(ts.rp.Blk.Blknum + 1); err != nil {
+				return err
+			}
 		}
 		ts.currentslot = ts.rp.InsertAfter(ts.currentslot)
 	}
@@ -190,19 +198,29 @@ func (ts *TableScan) GetRid() RID {
 }
 
 // MoveToRid positions the scan so that the current record has the specified RID.
-func (ts *TableScan) MoveToRid(rid RID) {
+func (ts *TableScan) MoveToRid(rid RID) error {
 	ts.Close()
 	blk := file.NewBlockID(ts.filename, rid.Blknum)
-	ts.rp = NewRecordPage(ts.tx, blk, ts.layout)
+	rp, err := NewRecordPage(ts.tx, blk, ts.layout)
+	if err != nil {
+		return err
+	}
+	ts.rp = rp
 	ts.currentslot = rid.Slot
+	return nil
 }
 
 // moveToBlock moves the table scan internally to the specified block.
-func (ts *TableScan) moveToBlock(blknum int) {
+func (ts *TableScan) moveToBlock(blknum int) error {
 	ts.Close()
 	blk := file.NewBlockID(ts.filename, blknum)
-	ts.rp = NewRecordPage(ts.tx, blk, ts.layout)
+	rp, err := NewRecordPage(ts.tx, blk, ts.layout)
+	if err != nil {
+		return err
+	}
+	ts.rp = rp
 	ts.currentslot = -1
+	return nil
 }
 
 // moveToNewBlock moves the table scan to a new, empty block.
@@ -212,7 +230,11 @@ func (ts *TableScan) moveToNewBlock() error {
 	if err != nil {
 		return err
 	}
-	ts.rp = NewRecordPage(ts.tx, blk, ts.layout)
+	rp, err := NewRecordPage(ts.tx, blk, ts.layout)
+	if err != nil {
+		return err
+	}
+	ts.rp = rp
 	err = ts.rp.Format()
 	if err != nil {
 		return err

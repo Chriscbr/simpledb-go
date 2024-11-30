@@ -46,9 +46,14 @@ func TestRecord(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to append to file: %v", err)
 	}
-	tx.Pin(blk)
+	if err := tx.Pin(blk); err != nil {
+		t.Fatalf("Failed to pin block: %v", err)
+	}
 
-	rp := record.NewRecordPage(tx, blk, layout)
+	rp, err := record.NewRecordPage(tx, blk, layout)
+	if err != nil {
+		t.Fatalf("Failed to create record page: %v", err)
+	}
 	err = rp.Format()
 	if err != nil {
 		t.Fatalf("Failed to format record page: %v", err)
@@ -58,8 +63,12 @@ func TestRecord(t *testing.T) {
 	slot := rp.InsertAfter(-1)
 	for slot >= 0 {
 		n := rand.Intn(50)
-		rp.SetInt(slot, "A", int32(n))
-		rp.SetString(slot, "B", fmt.Sprintf("rec%d", n))
+		if err := rp.SetInt(slot, "A", int32(n)); err != nil {
+			t.Fatal(err)
+		}
+		if err := rp.SetString(slot, "B", fmt.Sprintf("rec%d", n)); err != nil {
+			t.Fatal(err)
+		}
 		t.Logf("Inserting into slot %d: {%d, rec%d}", slot, n, n)
 		slot = rp.InsertAfter(slot)
 	}
@@ -78,7 +87,9 @@ func TestRecord(t *testing.T) {
 		}
 		if a < 25 {
 			t.Logf("Deleting slot %d: {%d, %s}", slot, a, b)
-			rp.Delete(slot)
+			if err := rp.Delete(slot); err != nil {
+				t.Fatal(err)
+			}
 			count++
 		}
 		slot = rp.NextAfter(slot)
@@ -100,8 +111,7 @@ func TestRecord(t *testing.T) {
 		slot = rp.NextAfter(slot)
 	}
 	tx.Unpin(blk)
-	err = tx.Commit()
-	if err != nil {
+	if err := tx.Commit(); err != nil {
 		t.Fatalf("Failed to commit transaction: %v", err)
 	}
 }
