@@ -1,6 +1,7 @@
 package record
 
 import (
+	"fmt"
 	"simpledb/internal/file"
 	"simpledb/internal/tx"
 )
@@ -52,6 +53,9 @@ func (rp *RecordPage) SetInt(slot int, fldname string, val int32) error {
 // SetString stores a string at the specified field of a specified slot.
 func (rp *RecordPage) SetString(slot int, fldname string, val string) error {
 	fldpos := rp.offset(slot) + rp.layout.Offset(fldname)
+	if len(val) > rp.layout.Schema.LengthInBytes(fldname) {
+		return fmt.Errorf("string too long: %s", val)
+	}
 	return rp.tx.SetString(rp.Blk, fldpos, val, true)
 }
 

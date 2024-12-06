@@ -115,3 +115,49 @@ func TestRecord(t *testing.T) {
 		t.Fatalf("Failed to commit transaction: %v", err)
 	}
 }
+
+func TestRecordStringFields(t *testing.T) {
+	t.Cleanup(func() {
+		os.RemoveAll("recordtest")
+	})
+
+	db, err := server.NewSimpleDB("recordtest", 400, 8)
+	if err != nil {
+		t.Fatalf("Failed to create database: %v", err)
+	}
+	defer db.Close()
+
+	tx, err := db.NewTx()
+	if err != nil {
+		t.Fatalf("Failed to create transaction: %v", err)
+	}
+
+	sch := record.NewSchema()
+	sch.AddStringField("A", 5)
+	layout := record.NewLayout(sch)
+
+	blk, err := tx.Append("testfile")
+	if err != nil {
+		t.Fatalf("Failed to append to file: %v", err)
+	}
+	if err := tx.Pin(blk); err != nil {
+		t.Fatalf("Failed to pin block: %v", err)
+	}
+
+	rp, err := record.NewRecordPage(tx, blk, layout)
+	if err != nil {
+		t.Fatalf("Failed to create record page: %v", err)
+	}
+	err = rp.Format()
+	if err != nil {
+		t.Fatalf("Failed to format record page: %v", err)
+	}
+
+	if err := rp.SetString(0, "A", "hello"); err != nil {
+		t.Fatalf("Failed to set string: %v", err)
+	}
+	err = rp.SetString(0, "A", "hello world")
+	if err == nil {
+		t.Fatalf("Expected error setting string too long, got nil")
+	}
+}

@@ -141,7 +141,7 @@ func (ts *TableScan) HasField(fldname string) bool {
 // Close closes the current table scan.
 func (ts *TableScan) Close() {
 	if ts.rp != nil {
-		ts.tx.Unpin(ts.rp.Blk)
+		ts.tx.Unpin(ts.rp.Blk) // TODO: add close method to RecordPage instead?
 		ts.rp = nil
 	}
 }
