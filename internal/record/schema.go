@@ -108,6 +108,7 @@ func (s *Schema) Type(name string) Type {
 }
 
 // Length returns the conceptual length of the specified field.
+// For example, if it's a string, the length of the string is returned.
 // Returns ErrFieldNotFound if the field doesn't exist.
 // If the field is not a string field, the length is undefined.
 func (s *Schema) Length(name string) int {
