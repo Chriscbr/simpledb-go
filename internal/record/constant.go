@@ -1,6 +1,9 @@
 package record
 
-import "fmt"
+import (
+	"fmt"
+	"hash/fnv"
+)
 
 // Constant represents a value in the database.
 type Constant struct {
@@ -69,6 +72,19 @@ func (c Constant) Compare(other Constant) int {
 		}
 	}
 	panic("Cannot compare constants of different types")
+}
+
+// Hash returns the hash value of the constant
+func (c Constant) Hash() int {
+	if c.ival != nil {
+		return int(*c.ival)
+	}
+	if c.sval != nil {
+		h := fnv.New32a()
+		h.Write([]byte(*c.sval))
+		return int(h.Sum32())
+	}
+	panic("Constant does not contain a value")
 }
 
 // String implements the Stringer interface

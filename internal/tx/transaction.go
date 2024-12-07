@@ -215,6 +215,7 @@ func (t *Transaction) Append(filename string) (file.BlockID, error) {
 	return t.fm.Append(filename)
 }
 
+// BlockSize returns the block size for the file system.
 func (t *Transaction) BlockSize() int {
 	return t.fm.BlockSize
 }

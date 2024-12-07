@@ -168,7 +168,10 @@ func (ts *TableScan) SetVal(fldname string, val Constant) error {
 	return fmt.Errorf("unknown field type: %v", typ)
 }
 
-// Insert inserts a new record after the current record in the scan.
+// Insert inserts a new record after the current record in the scan
+// by finding the first empty slot.
+// If the current block is full, it moves to the next one and continues
+// until it finds an empty slot.
 func (ts *TableScan) Insert() error {
 	ts.currentslot = ts.rp.InsertAfter(ts.currentslot)
 	for ts.currentslot < 0 {
