@@ -36,6 +36,7 @@ func (vm *ViewMgr) CreateView(vname string, vdef string, tx *tx.Transaction) err
 	if err != nil {
 		return err
 	}
+	defer ts.Close()
 	if err := ts.Insert(); err != nil {
 		return err
 	}
@@ -45,7 +46,6 @@ func (vm *ViewMgr) CreateView(vname string, vdef string, tx *tx.Transaction) err
 	if err := ts.SetString("viewdef", vdef); err != nil {
 		return err
 	}
-	ts.Close()
 	return nil
 }
 
@@ -59,6 +59,7 @@ func (vm *ViewMgr) GetViewDef(vname string, tx *tx.Transaction) (string, error) 
 	if err != nil {
 		return "", err
 	}
+	defer ts.Close()
 	var result string
 	for ts.Next() {
 		name, err := ts.GetString("viewname")
@@ -73,6 +74,5 @@ func (vm *ViewMgr) GetViewDef(vname string, tx *tx.Transaction) (string, error) 
 			break
 		}
 	}
-	ts.Close()
 	return result, nil
 }

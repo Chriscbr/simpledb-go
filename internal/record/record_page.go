@@ -22,12 +22,18 @@ type RecordPage struct {
 	layout *Layout
 }
 
+// NewRecordPage creates a new RecordPage.
 func NewRecordPage(tx *tx.Transaction, blk file.BlockID, layout *Layout) (*RecordPage, error) {
 	rp := &RecordPage{tx, blk, layout}
 	if err := tx.Pin(blk); err != nil {
 		return nil, err
 	}
 	return rp, nil
+}
+
+// Close closes the record page.
+func (rp *RecordPage) Close() {
+	rp.tx.Unpin(rp.Blk)
 }
 
 // GetInt returns the integer value stored for the specified field of a

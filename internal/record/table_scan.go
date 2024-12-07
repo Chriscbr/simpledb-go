@@ -141,7 +141,7 @@ func (ts *TableScan) HasField(fldname string) bool {
 // Close closes the current table scan.
 func (ts *TableScan) Close() {
 	if ts.rp != nil {
-		ts.tx.Unpin(ts.rp.Blk) // TODO: add close method to RecordPage instead?
+		ts.rp.Close()
 		ts.rp = nil
 	}
 }
@@ -237,6 +237,7 @@ func (ts *TableScan) moveToNewBlock() error {
 	ts.rp = rp
 	err = ts.rp.Format()
 	if err != nil {
+		ts.rp.Close()
 		return err
 	}
 	ts.currentslot = -1
