@@ -66,5 +66,8 @@ func TestTableMgr(t *testing.T) {
 			}
 		}
 	}
-	tx.Commit()
+
+	if err := tx.Commit(); err != nil {
+		t.Fatalf("Failed to commit transaction: %v", err)
+	}
 }
