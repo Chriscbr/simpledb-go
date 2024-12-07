@@ -39,6 +39,12 @@ Run an individual test:
 go test simpledb/internal/tx -run TestRecovery -v
 ```
 
+To lint, run:
+
+```
+golangci-lint run
+```
+
 ## References
 
 - [SimpleDB homepage](https://cs.bc.edu/~sciore/simpledb/) - hosts the original Java implementation
