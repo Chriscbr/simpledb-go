@@ -9,7 +9,7 @@ Implementation progress by chapter:
 - [x] Ch 4. Memory Management
 - [x] Ch 5. Transaction Management
 - [x] Ch 6. Record Management
-- [ ] Ch 7. Metadata Management
+- [x] Ch 7. Metadata Management
 - [ ] Ch 8. Query Processing
 - [ ] Ch 9. Parsing
 - [ ] Ch 10. Planning
