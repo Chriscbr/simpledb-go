@@ -15,7 +15,7 @@ func TestMetadataMgr(t *testing.T) {
 		os.RemoveAll("metadatamgrtest")
 	})
 
-	db, err := server.NewSimpleDB("metadatamgrtest", 400, 8)
+	db, err := server.NewSimpleDBWithConfig("metadatamgrtest", 400, 8)
 	if err != nil {
 		t.Fatalf("Failed to create database: %v", err)
 	}

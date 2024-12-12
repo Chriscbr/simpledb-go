@@ -15,7 +15,7 @@ func TestConcurrency(t *testing.T) {
 		os.RemoveAll("concurrencytest")
 	})
 
-	db, err := server.NewSimpleDB("concurrencytest", 400, 8)
+	db, err := server.NewSimpleDBWithConfig("concurrencytest", 400, 8)
 	if err != nil {
 		t.Fatalf("Failed to create database: %v", err)
 	}

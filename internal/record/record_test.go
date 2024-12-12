@@ -14,7 +14,7 @@ func TestRecord(t *testing.T) {
 		os.RemoveAll("recordtest")
 	})
 
-	db, err := server.NewSimpleDB("recordtest", 400, 8)
+	db, err := server.NewSimpleDBWithConfig("recordtest", 400, 8)
 	if err != nil {
 		t.Fatalf("Failed to create database: %v", err)
 	}
@@ -121,7 +121,7 @@ func TestRecordStringFields(t *testing.T) {
 		os.RemoveAll("recordtest")
 	})
 
-	db, err := server.NewSimpleDB("recordtest", 400, 8)
+	db, err := server.NewSimpleDBWithConfig("recordtest", 400, 8)
 	if err != nil {
 		t.Fatalf("Failed to create database: %v", err)
 	}

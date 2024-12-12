@@ -13,7 +13,7 @@ func TestTableMgr(t *testing.T) {
 		os.RemoveAll("tblmgrtest")
 	})
 
-	db, err := server.NewSimpleDB("tblmgrtest", 400, 8)
+	db, err := server.NewSimpleDBWithConfig("tblmgrtest", 400, 8)
 	if err != nil {
 		t.Fatalf("Failed to create database: %v", err)
 	}

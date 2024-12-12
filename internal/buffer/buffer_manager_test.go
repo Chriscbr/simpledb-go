@@ -13,7 +13,7 @@ func TestBuffer(t *testing.T) {
 		os.RemoveAll("buffertest")
 	})
 
-	db, err := server.NewSimpleDB("buffertest", 400, 3) // only 3 buffers
+	db, err := server.NewSimpleDBWithConfig("buffertest", 400, 3) // only 3 buffers
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,7 +64,7 @@ func TestBufferMgr(t *testing.T) {
 		os.RemoveAll("buffermgrtest")
 	})
 
-	db, err := server.NewSimpleDB("buffermgrtest", 400, 3) // only 3 buffers
+	db, err := server.NewSimpleDBWithConfig("buffermgrtest", 400, 3) // only 3 buffers
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -133,7 +133,7 @@ func TestBufferFile(t *testing.T) {
 		os.RemoveAll("bufferfiletest")
 	})
 
-	db, err := server.NewSimpleDB("bufferfiletest", 400, 3) // only 3 buffers
+	db, err := server.NewSimpleDBWithConfig("bufferfiletest", 400, 3) // only 3 buffers
 	if err != nil {
 		t.Fatal(err)
 	}

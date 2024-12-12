@@ -10,7 +10,6 @@ import (
 const workspaceDir = "./data"
 
 func main() {
-	fmt.Println("Hello, World!")
 	err := os.MkdirAll(workspaceDir, 0755)
 	if err != nil {
 		fmt.Println("error initializing database:", err)
@@ -18,7 +17,7 @@ func main() {
 	}
 
 	dbDir := filepath.Join(workspaceDir, "testdb")
-	db, err := simpledb.NewSimpleDB(dbDir, 400, 10)
+	db, err := simpledb.NewSimpleDB(dbDir)
 	if err != nil {
 		fmt.Println("error initializing database:", err)
 		return

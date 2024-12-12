@@ -12,7 +12,7 @@ func TestTransaction(t *testing.T) {
 		os.RemoveAll("txtest")
 	})
 
-	db, err := server.NewSimpleDB("txtest", 400, 8)
+	db, err := server.NewSimpleDBWithConfig("txtest", 400, 8)
 	if err != nil {
 		t.Fatalf("Failed to create database: %v", err)
 	}

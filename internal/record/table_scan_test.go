@@ -14,7 +14,7 @@ func TestTableScan(t *testing.T) {
 		os.RemoveAll("tabletest")
 	})
 
-	db, err := server.NewSimpleDB("tabletest", 400, 8)
+	db, err := server.NewSimpleDBWithConfig("tabletest", 400, 8)
 	if err != nil {
 		t.Fatalf("Failed to create database: %v", err)
 	}

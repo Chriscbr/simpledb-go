@@ -1,23 +1,31 @@
 package server
 
 import (
+	"fmt"
 	"simpledb/internal/buffer"
 	"simpledb/internal/file"
 	"simpledb/internal/log"
+	"simpledb/internal/metadata"
 	"simpledb/internal/tx"
 	"simpledb/internal/tx/concurrency"
 )
 
+const (
+	DefaultBlockSize  = 400
+	DefaultBufferSize = 8
+)
+
 type SimpleDB struct {
-	FileMgr   *file.FileMgr
-	LogMgr    *log.LogMgr
-	BufferMgr *buffer.BufferMgr
-	LockTable *concurrency.LockTable
+	FileMgr     *file.FileMgr
+	LogMgr      *log.LogMgr
+	BufferMgr   *buffer.BufferMgr
+	LockTable   *concurrency.LockTable
+	MetadataMgr *metadata.MetadataMgr
 }
 
-// NewSimpleDB creates a new SimpleDB instance with the given directory name and blocksize.
+// NewSimpleDBWithConfig creates a new SimpleDB instance with the given directory name and blocksize.
 // The instance should be closed by calling Close() when it's no longer needed.
-func NewSimpleDB(dirname string, blocksize int, numbufs int) (*SimpleDB, error) {
+func NewSimpleDBWithConfig(dirname string, blocksize int, numbufs int) (*SimpleDB, error) {
 	fm, err := file.NewFileMgr(dirname, blocksize)
 	if err != nil {
 		return nil, err
@@ -35,7 +43,39 @@ func NewSimpleDB(dirname string, blocksize int, numbufs int) (*SimpleDB, error) 
 
 	lt := concurrency.NewLockTable()
 
-	db := &SimpleDB{fm, lm, bm, lt}
+	db := &SimpleDB{fm, lm, bm, lt, nil}
+	return db, nil
+}
+
+// NewSimpleDB creates a new SimpleDB instance with a default configuration.
+// It also initializes the metadata tables.
+func NewSimpleDB(dirname string) (*SimpleDB, error) {
+	db, err := NewSimpleDBWithConfig(dirname, DefaultBlockSize, DefaultBufferSize)
+	if err != nil {
+		return nil, err
+	}
+	tx, err := db.NewTx()
+	if err != nil {
+		return nil, err
+	}
+	isNew := db.FileMgr.IsNew
+	if isNew {
+		fmt.Println("creating new database")
+	} else {
+		fmt.Println("recovering existing database")
+		err := tx.Recover()
+		if err != nil {
+			return nil, err
+		}
+	}
+	mm, err := metadata.NewMetadataMgr(isNew, tx)
+	if err != nil {
+		return nil, err
+	}
+	db.MetadataMgr = mm
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
 	return db, nil
 }
 

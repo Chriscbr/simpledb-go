@@ -19,7 +19,7 @@ func TestRecovery(t *testing.T) {
 	})
 
 	var err error
-	db, err = server.NewSimpleDB("recoverytest", 400, 8)
+	db, err = server.NewSimpleDBWithConfig("recoverytest", 400, 8)
 	if err != nil {
 		t.Fatalf("Failed to create database: %v", err)
 	}
@@ -31,7 +31,7 @@ func TestRecovery(t *testing.T) {
 	modify(t)
 
 	db.Close()
-	db, err = server.NewSimpleDB("recoverytest", 400, 8)
+	db, err = server.NewSimpleDBWithConfig("recoverytest", 400, 8)
 	if err != nil {
 		t.Fatalf("Failed to create database: %v", err)
 	}
