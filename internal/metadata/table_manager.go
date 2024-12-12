@@ -34,10 +34,10 @@ func NewTableMgr(isNew bool, tx *tx.Transaction) (*TableMgr, error) {
 	tm.fcatLayout = record.NewLayout(fcatSchema)
 
 	if isNew {
-		if err := tm.CreateTable("TableCatalog", tcatSchema, tx); err != nil {
+		if err := tm.CreateTable("tblcat", tcatSchema, tx); err != nil {
 			return nil, err
 		}
-		if err := tm.CreateTable("FieldCatalog", fcatSchema, tx); err != nil {
+		if err := tm.CreateTable("fldcat", fcatSchema, tx); err != nil {
 			return nil, err
 		}
 	}

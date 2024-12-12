@@ -96,6 +96,11 @@ func NewIndexMgr(isNew bool, tm *TableMgr, sm *StatMgr, tx *tx.Transaction) (*In
 			return nil, err
 		}
 	}
+	layout, err := im.tm.GetLayout("idxcat", tx)
+	if err != nil {
+		return nil, err
+	}
+	im.layout = layout
 	return im, nil
 }
 

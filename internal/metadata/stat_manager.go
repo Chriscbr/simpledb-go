@@ -67,7 +67,8 @@ func (sm *StatMgr) GetStatInfo(tblname string, layout *record.Layout, tx *tx.Tra
 	}
 	si, ok := sm.tableStats[tblname]
 	if !ok {
-		si, err := sm.calcTableStats(tblname, layout, tx)
+		var err error
+		si, err = sm.calcTableStats(tblname, layout, tx)
 		if err != nil {
 			return nil, err
 		}
@@ -112,9 +113,6 @@ func (sm *StatMgr) refreshStatistics(tx *tx.Transaction) error {
 
 // calcTableStats calculates the statistics for a specified table.
 func (sm *StatMgr) calcTableStats(tblname string, layout *record.Layout, tx *tx.Transaction) (*StatInfo, error) {
-	sm.mu.Lock()
-	defer sm.mu.Unlock()
-
 	var numBlocks int = 0
 	var numRecords int = 0
 	ts, err := record.NewTableScan(tx, tblname, layout)
