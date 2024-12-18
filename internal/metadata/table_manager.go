@@ -108,7 +108,6 @@ func (tm *TableMgr) GetLayout(tblname string, tx *tx.Transaction) (*record.Layou
 	if err != nil {
 		return nil, err
 	}
-	defer tcat.Close()
 
 	// Scan tblcat to find the table with the specified name,
 	// and get its slot size.
@@ -116,20 +115,22 @@ func (tm *TableMgr) GetLayout(tblname string, tx *tx.Transaction) (*record.Layou
 	for tcat.Next() {
 		v, err := tcat.GetString("tblname")
 		if err != nil {
+			tcat.Close()
 			return nil, err
 		}
 		if v == tblname {
 			slotsize, err = tcat.GetInt("slotsize")
 			if err != nil {
+				tcat.Close()
 				return nil, err
 			}
 			break
 		}
 	}
+	tcat.Close()
 	if slotsize == -1 {
 		return nil, fmt.Errorf("table %s not found", tblname)
 	}
-	// TODO: close tcat earlier, instead of deferring
 
 	// Scan fldcat to get the field information for all fields
 	// matching the specified table name.
