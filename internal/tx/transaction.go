@@ -124,7 +124,10 @@ func (t *Transaction) GetInt(blk file.BlockID, offset int) (int32, error) {
 	if err := t.cm.SLock(blk); err != nil {
 		return 0, err
 	}
-	b := t.buffers.GetBuffer(blk)
+	b, ok := t.buffers.GetBuffer(blk)
+	if !ok {
+		return 0, fmt.Errorf("buffer not found")
+	}
 	return b.Contents.GetInt(offset), nil
 }
 
@@ -136,7 +139,10 @@ func (t *Transaction) GetString(blk file.BlockID, offset int) (string, error) {
 	if err := t.cm.SLock(blk); err != nil {
 		return "", err
 	}
-	b := t.buffers.GetBuffer(blk)
+	b, ok := t.buffers.GetBuffer(blk)
+	if !ok {
+		return "", fmt.Errorf("buffer not found")
+	}
 	return b.Contents.GetString(offset), nil
 }
 
@@ -150,7 +156,10 @@ func (t *Transaction) SetInt(blk file.BlockID, offset int, n int32, okToLog bool
 	if err := t.cm.XLock(blk); err != nil {
 		return err
 	}
-	b := t.buffers.GetBuffer(blk)
+	b, ok := t.buffers.GetBuffer(blk)
+	if !ok {
+		return fmt.Errorf("buffer not found")
+	}
 	lsn := -1
 	if okToLog {
 		var err error
@@ -175,7 +184,10 @@ func (t *Transaction) SetString(blk file.BlockID, offset int, val string, okToLo
 	if err := t.cm.XLock(blk); err != nil {
 		return err
 	}
-	b := t.buffers.GetBuffer(blk)
+	b, ok := t.buffers.GetBuffer(blk)
+	if !ok {
+		return fmt.Errorf("buffer not found")
+	}
 	lsn := -1
 	if okToLog {
 		var err error

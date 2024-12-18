@@ -24,9 +24,9 @@ func NewBufferList(bm *buffer.BufferMgr) *BufferList {
 }
 
 // GetBuffer returns the buffer pinned to the specified block.
-// The method returns nil if the transaction has not pinned the block.
-func (bl *BufferList) GetBuffer(blk file.BlockID) *buffer.Buffer {
-	return bl.buffers[blk] // TODO: check if this is nil
+func (bl *BufferList) GetBuffer(blk file.BlockID) (*buffer.Buffer, bool) {
+	b, exists := bl.buffers[blk]
+	return b, exists
 }
 
 // Pin pins the specified block and keeps track of the buffer internally.
