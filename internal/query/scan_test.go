@@ -66,21 +66,17 @@ func TestScan1(t *testing.T) {
 	t.Logf("The predicate is: %v", pred)
 
 	s3 := query.NewSelectScan(s2, pred)
-	for s3.Next() {
-		a, err := s3.GetInt("A")
+	fields := []string{"B"}
+	s4 := query.NewProjectScan(s3, fields)
+	for s4.Next() {
+		b, err := s4.GetString("B")
 		if err != nil {
 			t.Fatalf("Failed to get value: %v", err)
 		}
-		b, err := s3.GetString("B")
-		if err != nil {
-			t.Fatalf("Failed to get value: %v", err)
-		}
-		t.Logf("Selected record: {A: %v, B: %v}", a, b)
+		t.Logf("Selected record: {B: %v}", b)
 	}
-	s3.Close()
+	s4.Close()
 	if err := tx.Commit(); err != nil {
 		t.Fatalf("Failed to commit transaction: %v", err)
 	}
-
-	// TODO: add project scan
 }
