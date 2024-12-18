@@ -8,13 +8,13 @@ type Expression struct {
 }
 
 // NewConstantExpression creates a new expression that evaluates to a constant value.
-func NewConstantExpression(val record.Constant) *Expression {
-	return &Expression{val: &val}
+func NewConstantExpression(val record.Constant) Expression {
+	return Expression{val: &val}
 }
 
 // NewFieldExpression creates a new expression that evaluates to the value of a field.
-func NewFieldExpression(fldname string) *Expression {
-	return &Expression{fldname: &fldname}
+func NewFieldExpression(fldname string) Expression {
+	return Expression{fldname: &fldname}
 }
 
 // Evaluate evaluates the expression with respect to the
