@@ -40,10 +40,10 @@ func (t *Term) IsSatisfied(s record.Scan) (bool, error) {
 // where F is the specified field and c is some constant.
 // If so, the method returns that constant, otherwise it returns nil.
 func (t *Term) EquatesWithConstant(fldname string) *record.Constant {
-	if t.lhs.IsFieldName() && *t.lhs.FieldName() == fldname && !t.rhs.IsFieldName() {
+	if t.lhs.FieldName() != nil && *t.lhs.FieldName() == fldname && t.rhs.FieldName() == nil {
 		return t.rhs.Constant()
 	}
-	if t.rhs.IsFieldName() && *t.rhs.FieldName() == fldname && !t.lhs.IsFieldName() {
+	if t.rhs.FieldName() != nil && *t.rhs.FieldName() == fldname && t.lhs.FieldName() == nil {
 		return t.lhs.Constant()
 	}
 	return nil
@@ -53,10 +53,10 @@ func (t *Term) EquatesWithConstant(fldname string) *record.Constant {
 // where F1 is the specified field and F2 is some other field.
 // If so, the method returns that other field, otherwise it returns nil.
 func (t *Term) EquatesWithField(fldname string) *string {
-	if t.lhs.IsFieldName() && *t.lhs.FieldName() == fldname && t.rhs.IsFieldName() {
+	if t.lhs.FieldName() != nil && *t.lhs.FieldName() == fldname && t.rhs.FieldName() != nil {
 		return t.rhs.FieldName()
 	}
-	if t.rhs.IsFieldName() && *t.rhs.FieldName() == fldname && t.lhs.IsFieldName() {
+	if t.rhs.FieldName() != nil && *t.rhs.FieldName() == fldname && t.lhs.FieldName() != nil {
 		return t.lhs.FieldName()
 	}
 	return nil
