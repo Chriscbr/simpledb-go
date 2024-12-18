@@ -27,6 +27,8 @@ func (e *Expression) Evaluate(s record.Scan) (record.Constant, error) {
 	}
 }
 
+// TODO: are IsFieldName() and FieldName() redundant?
+
 // IsFieldName returns true if the expression is a field reference.
 func (e *Expression) IsFieldName() bool {
 	return e.fldname != nil
