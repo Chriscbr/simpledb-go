@@ -63,7 +63,7 @@ func (bm *BufferMgr) Unpin(b *Buffer) {
 	b.Unpin()
 	if !b.IsPinned() {
 		bm.numAvailable++
-		// notifyAll() // TODO: ???
+		// notifyAll() // TODO: currently the Pin() method does a wait loop, consider revising and using channels
 	}
 }
 
