@@ -11,7 +11,7 @@ Implementation progress by chapter:
 - [x] Ch 6. Record Management
 - [x] Ch 7. Metadata Management
 - [x] Ch 8. Query Processing
-- [ ] Ch 9. Parsing
+- [x] Ch 9. Parsing
 - [ ] Ch 10. Planning
 - [ ] Ch 11. JDBC Interfaces
 - [ ] Ch 12. Indexing

@@ -24,11 +24,21 @@ func TestLexer2(t *testing.T) {
 	checkToken(t, lexer, EOF, "")
 }
 
-func checkToken(t *testing.T, lexer *Lexer, typ Type, lit string) {
-	token, err := lexer.NextToken()
-	if err != nil {
-		t.Fatal(err)
-	}
+func TestLexer3(t *testing.T) {
+	lexer := NewLexer("select id from foo where bar = 'baz'")
+	checkToken(t, lexer, Keyword, "select")
+	checkToken(t, lexer, Identifier, "id")
+	checkToken(t, lexer, Keyword, "from")
+	checkToken(t, lexer, Identifier, "foo")
+	checkToken(t, lexer, Keyword, "where")
+	checkToken(t, lexer, Identifier, "bar")
+	checkToken(t, lexer, Equal, "=")
+	checkToken(t, lexer, String, "baz")
+	checkToken(t, lexer, EOF, "")
+}
+
+func checkToken(t *testing.T, lexer *Lexer, typ TokenType, lit string) {
+	token := lexer.NextToken()
 	if token.Literal != lit {
 		t.Fatalf("expected %s, got %s", lit, token.Literal)
 	}

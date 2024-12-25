@@ -16,11 +16,11 @@ const (
 func (t Type) String() string {
 	switch t {
 	case Integer:
-		return "Integer"
+		return "INT"
 	case String:
-		return "String"
+		return "VARCHAR"
 	default:
-		return "Unknown"
+		return "UNKNOWN"
 	}
 }
 

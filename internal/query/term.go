@@ -70,5 +70,5 @@ func (t *Term) AppliesTo(sch *record.Schema) bool {
 
 // String returns a string representation of this term.
 func (t *Term) String() string {
-	return fmt.Sprintf("%s=%s", t.lhs.String(), t.rhs.String())
+	return fmt.Sprintf("%s = %s", t.lhs.String(), t.rhs.String())
 }

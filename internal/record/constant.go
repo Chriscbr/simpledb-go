@@ -93,7 +93,7 @@ func (c Constant) String() string {
 		return fmt.Sprintf("%d", *c.ival)
 	}
 	if c.sval != nil {
-		return *c.sval
+		return fmt.Sprintf("'%s'", *c.sval)
 	}
 	panic("Constant does not contain a value")
 }
