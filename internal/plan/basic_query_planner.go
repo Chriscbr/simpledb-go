@@ -24,7 +24,7 @@ func NewBasicQueryPlanner(mdm *metadata.MetadataMgr) *BasicQueryPlanner {
 // on the fields list.
 func (p *BasicQueryPlanner) CreatePlan(data *parse.QueryData, tx *tx.Transaction) (query.Plan, error) {
 	// Step 1: create a plan for each mentioned table or view.
-	plans := make([]query.Plan, len(data.Tables))
+	plans := make([]query.Plan, 0, len(data.Tables))
 	for _, tblname := range data.Tables {
 		viewdef, err := p.mdm.GetViewDef(tblname, tx)
 		if err != nil {

@@ -16,7 +16,7 @@ var _ query.Plan = (*ProductPlan)(nil)
 
 // NewProductPlan creates a new ProductPlan with the specified subqueries.
 func NewProductPlan(p1, p2 query.Plan) *ProductPlan {
-	schema := &record.Schema{}
+	schema := record.NewSchema()
 	schema.AddAll(p1.Schema())
 	schema.AddAll(p2.Schema())
 	return &ProductPlan{p1: p1, p2: p2, schema: schema}

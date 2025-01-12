@@ -75,7 +75,7 @@ func NewSimpleDB(dirname string) (*SimpleDB, error) {
 		return nil, err
 	}
 	db.MetadataMgr = mdm
-	db.Planner = plan.NewPlanner(plan.NewBasicQueryPlanner(mdm))
+	db.Planner = plan.NewPlanner(plan.NewBasicQueryPlanner(mdm), plan.NewBasicUpdatePlanner(mdm))
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}

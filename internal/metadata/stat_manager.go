@@ -79,9 +79,6 @@ func (sm *StatMgr) GetStatInfo(tblname string, layout *record.Layout, tx *tx.Tra
 
 // refreshStatistics refreshes the statistics for all tables.
 func (sm *StatMgr) refreshStatistics(tx *tx.Transaction) error {
-	sm.mu.Lock()
-	defer sm.mu.Unlock()
-
 	sm.tableStats = make(map[string]*StatInfo)
 	sm.numCalls = 0
 	tcatlayout, err := sm.tm.GetLayout("tblcat", tx)
