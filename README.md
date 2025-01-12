@@ -49,3 +49,4 @@ golangci-lint run
 
 - [SimpleDB homepage](https://cs.bc.edu/~sciore/simpledb/) - hosts the original Java implementation
 - [evanxg852000/simpledb-go](https://github.com/evanxg852000/simpledb-go) - an alternative Go implementation
+- [luigitni/simpledb](https://github.com/luigitni/simpledb) - another Go implementation
