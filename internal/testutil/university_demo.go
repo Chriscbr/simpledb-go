@@ -41,10 +41,14 @@ func SetupUniversityDB(t *testing.T, db *server.SimpleDB) {
 	if err != nil {
 		t.Fatalf("Failed to create transaction: %v", err)
 	}
-	defer tx.Commit()
 
 	setupStudents(t, db, tx)
 	setupDepartments(t, db, tx)
+
+	err = tx.Commit()
+	if err != nil {
+		t.Fatalf("Failed to commit transaction: %v", err)
+	}
 }
 
 func setupStudents(t *testing.T, db *server.SimpleDB, tx *tx.Transaction) {

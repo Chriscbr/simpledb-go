@@ -24,7 +24,6 @@ func TestPlanner1(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create transaction: %v", err)
 	}
-	defer tx.Commit()
 
 	cmd := "create table T1(A int, B varchar(9))"
 	_, err = db.Planner.ExecuteUpdate(cmd, tx)
@@ -64,6 +63,11 @@ func TestPlanner1(t *testing.T) {
 	}
 	scan.Close()
 	t.Logf("Found %d records", count)
+
+	err = tx.Commit()
+	if err != nil {
+		t.Fatalf("Failed to commit transaction: %v", err)
+	}
 }
 
 func TestPlanner2(t *testing.T) {
@@ -81,7 +85,6 @@ func TestPlanner2(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create transaction: %v", err)
 	}
-	defer tx.Commit()
 
 	cmd := "create table T1(A int, B varchar(9))"
 	_, err = db.Planner.ExecuteUpdate(cmd, tx)
@@ -142,4 +145,9 @@ func TestPlanner2(t *testing.T) {
 	}
 	scan.Close()
 	t.Logf("Found %d records", count)
+
+	err = tx.Commit()
+	if err != nil {
+		t.Fatalf("Failed to commit transaction: %v", err)
+	}
 }

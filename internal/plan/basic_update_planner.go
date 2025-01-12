@@ -29,10 +29,16 @@ func (p *BasicUpdatePlanner) ExecuteDelete(data *parse.DeleteData, tx *tx.Transa
 	}
 	plan = NewSelectPlan(plan, data.Pred)
 	s, err := plan.Open()
+	if err != nil {
+		return 0, err
+	}
 	us := s.(record.UpdateScan)
 	count := 0
 	for us.Next() {
-		us.Delete()
+		err := us.Delete()
+		if err != nil {
+			return 0, err
+		}
 		count++
 	}
 	us.Close()
@@ -48,6 +54,9 @@ func (p *BasicUpdatePlanner) ExecuteUpdate(data *parse.UpdateData, tx *tx.Transa
 	}
 	plan = NewSelectPlan(plan, data.Pred)
 	s, err := plan.Open()
+	if err != nil {
+		return 0, err
+	}
 	us := s.(record.UpdateScan)
 	count := 0
 	for us.Next() {
@@ -55,7 +64,10 @@ func (p *BasicUpdatePlanner) ExecuteUpdate(data *parse.UpdateData, tx *tx.Transa
 		if err != nil {
 			return 0, err
 		}
-		us.SetVal(data.TargetField, val)
+		err = us.SetVal(data.TargetField, val)
+		if err != nil {
+			return 0, err
+		}
 		count++
 	}
 	us.Close()
@@ -69,10 +81,19 @@ func (p *BasicUpdatePlanner) ExecuteInsert(data *parse.InsertData, tx *tx.Transa
 		return 0, err
 	}
 	s, err := plan.Open()
+	if err != nil {
+		return 0, err
+	}
 	us := s.(record.UpdateScan)
-	us.Insert()
+	err = us.Insert()
+	if err != nil {
+		return 0, err
+	}
 	for i, val := range data.Values {
-		us.SetVal(data.Fields[i], val)
+		err = us.SetVal(data.Fields[i], val)
+		if err != nil {
+			return 0, err
+		}
 	}
 	us.Close()
 	return 1, nil

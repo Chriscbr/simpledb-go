@@ -16,12 +16,15 @@ var _ query.Plan = (*ProjectPlan)(nil)
 
 // NewProjectPlan creates a new ProjectPlan with the specified subquery and
 // field names.
-func NewProjectPlan(p query.Plan, fieldnames []string) *ProjectPlan {
+func NewProjectPlan(p query.Plan, fieldnames []string) (*ProjectPlan, error) {
 	schema := record.NewSchema()
 	for _, fldname := range fieldnames {
-		schema.Add(fldname, p.Schema())
+		err := schema.Add(fldname, p.Schema())
+		if err != nil {
+			return nil, err
+		}
 	}
-	return &ProjectPlan{p, schema}
+	return &ProjectPlan{p, schema}, nil
 }
 
 // Open opens a scan for this query.

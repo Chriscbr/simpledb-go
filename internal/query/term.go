@@ -1,7 +1,6 @@
 package query
 
 import (
-	"errors"
 	"fmt"
 	"simpledb/internal/record"
 )
@@ -53,7 +52,7 @@ func (t *Term) ReductionFactor(p Plan) (int, error) {
 	if t.lhs.Constant().Equal(*t.rhs.Constant()) {
 		return 1, nil
 	}
-	return 0, errors.New(fmt.Sprintf("cannot calculate reduction factor for term %s", t.String()))
+	return 0, fmt.Errorf("cannot calculate reduction factor for term %s", t.String())
 }
 
 // EquatesWithConstant determines if this term is of the form "F=c"

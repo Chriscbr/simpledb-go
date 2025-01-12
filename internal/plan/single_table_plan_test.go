@@ -27,7 +27,6 @@ func TestSingleTablePlan(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create transaction: %v", err)
 	}
-	defer tx.Commit()
 
 	mdm := db.MetadataMgr
 
@@ -49,7 +48,10 @@ func TestSingleTablePlan(t *testing.T) {
 
 	// Project node
 	c := []string{"sname", "majorid", "gradyear"}
-	p4 := plan.NewProjectPlan(p3, c)
+	p4, err := plan.NewProjectPlan(p3, c)
+	if err != nil {
+		t.Fatalf("Failed to create project plan: %v", err)
+	}
 
 	// Look at R(p) and B(p) for each plan p
 	t.Logf("R(p1) = %d, B(p1) = %d", p1.RecordsOutput(), p1.BlocksAccessed())
@@ -77,5 +79,10 @@ func TestSingleTablePlan(t *testing.T) {
 			t.Fatalf("Failed to get gradyear: %v", err)
 		}
 		t.Logf("Record: {%s, %d, %d}", sname, majorid, gradyear)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		t.Fatalf("Failed to commit transaction: %v", err)
 	}
 }

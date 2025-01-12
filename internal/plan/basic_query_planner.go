@@ -63,7 +63,10 @@ func (p *BasicQueryPlanner) CreatePlan(data *parse.QueryData, tx *tx.Transaction
 	plan = NewSelectPlan(plan, data.Pred)
 
 	// Step 4: project on the field names
-	plan = NewProjectPlan(plan, data.Fields)
+	plan, err := NewProjectPlan(plan, data.Fields)
+	if err != nil {
+		return nil, err
+	}
 
 	return plan, nil
 }
