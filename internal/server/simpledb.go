@@ -6,6 +6,7 @@ import (
 	"simpledb/internal/file"
 	"simpledb/internal/log"
 	"simpledb/internal/metadata"
+	"simpledb/internal/plan"
 	"simpledb/internal/tx"
 	"simpledb/internal/tx/concurrency"
 )
@@ -21,6 +22,7 @@ type SimpleDB struct {
 	BufferMgr   *buffer.BufferMgr
 	LockTable   *concurrency.LockTable
 	MetadataMgr *metadata.MetadataMgr
+	Planner     *plan.Planner
 }
 
 // NewSimpleDBWithConfig creates a new SimpleDB instance with the given directory name and blocksize.
@@ -43,7 +45,7 @@ func NewSimpleDBWithConfig(dirname string, blocksize int, numbufs int) (*SimpleD
 
 	lt := concurrency.NewLockTable()
 
-	db := &SimpleDB{fm, lm, bm, lt, nil}
+	db := &SimpleDB{fm, lm, bm, lt, nil, nil}
 	return db, nil
 }
 
@@ -68,11 +70,12 @@ func NewSimpleDB(dirname string) (*SimpleDB, error) {
 			return nil, err
 		}
 	}
-	mm, err := metadata.NewMetadataMgr(isNew, tx)
+	mdm, err := metadata.NewMetadataMgr(isNew, tx)
 	if err != nil {
 		return nil, err
 	}
-	db.MetadataMgr = mm
+	db.MetadataMgr = mdm
+	db.Planner = plan.NewPlanner(plan.NewBasicQueryPlanner(mdm))
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}

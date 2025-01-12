@@ -1,6 +1,7 @@
 package query
 
 import (
+	"errors"
 	"fmt"
 	"simpledb/internal/record"
 )
@@ -34,7 +35,26 @@ func (t *Term) IsSatisfied(s record.Scan) (bool, error) {
 // reduces the number of records output by a query.
 // For example if the reduction factor is 2, then the
 // term cuts the size of the output in half.
-// TODO: func (t *Term) ReductionFactor(p Plan) (int, error) {}
+func (t *Term) ReductionFactor(p Plan) (int, error) {
+	if t.lhs.FieldName() != nil && t.rhs.FieldName() != nil {
+		lhsname := *t.lhs.FieldName()
+		rhsname := *t.rhs.FieldName()
+		return max(p.DistinctValues(lhsname), p.DistinctValues(rhsname)), nil
+	}
+	if t.lhs.FieldName() != nil {
+		lhsname := *t.lhs.FieldName()
+		return p.DistinctValues(lhsname), nil
+	}
+	if t.rhs.FieldName() != nil {
+		rhsname := *t.rhs.FieldName()
+		return p.DistinctValues(rhsname), nil
+	}
+	// otherwise, the term equates two constants
+	if t.lhs.Constant().Equal(*t.rhs.Constant()) {
+		return 1, nil
+	}
+	return 0, errors.New(fmt.Sprintf("cannot calculate reduction factor for term %s", t.String()))
+}
 
 // EquatesWithConstant determines if this term is of the form "F=c"
 // where F is the specified field and c is some constant.

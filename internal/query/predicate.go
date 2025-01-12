@@ -40,7 +40,17 @@ func (p *Predicate) IsSatisfied(s record.Scan) (bool, error) {
 // reduces the number of records output by a query.
 // For example if the reduction factor is 2, then the
 // predicate cuts the size of the output in half.
-// TODO: func (p *Predicate) ReductionFactor(p Plan) (int, error) {}
+func (p *Predicate) ReductionFactor(plan Plan) (int, error) {
+	factor := 1
+	for _, term := range p.terms {
+		termFactor, err := term.ReductionFactor(plan)
+		if err != nil {
+			return 0, err
+		}
+		factor *= termFactor
+	}
+	return factor, nil
+}
 
 // SelectSubPred returns the subpredicate that applies to the specified schema,
 // or nil if the predicate does not apply to the schema.
